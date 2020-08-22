@@ -37,7 +37,6 @@ namespace Pertuk.Business.Services.Concrete
                     issuer: jwtOptions.Issuer,
                     audience: jwtOptions.Audience,
                     claims: userClaims,
-                    expires: DateTime.Now.AddDays(10),
                     signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
                 );
 
@@ -53,8 +52,7 @@ namespace Pertuk.Business.Services.Concrete
         {
             var userClaims = new[]
             {
-                new Claim(UserClaimTypes.Firstname, userInfo.Firstname),
-                new Claim(UserClaimTypes.Lastname, userInfo.Lastname),
+                new Claim(UserClaimTypes.Fullname, userInfo.Fullname),
                 new Claim(UserClaimTypes.Username, userInfo.UserName),
                 new Claim(UserClaimTypes.Email, userInfo.Email)
             };

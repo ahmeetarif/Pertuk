@@ -8,10 +8,10 @@
         public static int MinUsername = 6;
         public static int MaxUsername = 50;
 
-        public static int MaxFirstname = 50;
+        public static int MaxFullname = 100;
         public static int MaxLastname = 50;
 
-        public static int MaxDepartment = 50;
+        public static int MaxDepartment = 80;
 
         public static int MaxGrade = 20;
     }

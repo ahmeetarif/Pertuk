@@ -11,6 +11,10 @@ using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Business.Services.Concrete;
 using Pertuk.Business.Validators.Auth;
+using Pertuk.Common.Exceptions;
+using Pertuk.Core.DataAccess.BaseRepository;
+using Pertuk.DataAccess.Repositories.Abstract;
+using Pertuk.DataAccess.Repositories.Concrete;
 using Pertuk.Dto.Requests.Auth;
 using System;
 using System.Collections.Generic;
@@ -27,6 +31,7 @@ namespace Pertuk.Business.Installers
                 .AddMvcOptions(options =>
             {
                 options.Filters.Add<ValidationFilter>();
+                options.Filters.Add<ExceptionFilter>();
             })
                 .AddFluentValidation(config => config.RegisterValidatorsFromAssembly(Assembly.GetExecutingAssembly()));
 
@@ -103,11 +108,10 @@ namespace Pertuk.Business.Installers
                     ValidateAudience = true,
                     ValidIssuer = jwtOption.Issuer,
                     ValidAudience = jwtOption.Audience,
-                    RequireExpirationTime = true,
+                    RequireExpirationTime = false,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOption.Secret)),
                     ValidateIssuerSigningKey = true,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
+                    ValidateLifetime = true
                 };
             });
         }
@@ -119,6 +123,11 @@ namespace Pertuk.Business.Installers
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
 
+            services.AddScoped<IStudentUsersRepository, StudentUsersRepository>();
+            services.AddScoped<ITeacherUsersRepository, TeacherUsersRepository>();
+            services.AddScoped<IBannedUsersRepository, BannedUsersRepository>();
+            services.AddScoped<IDeletedUsersRepository, DeletedUsersRepository>();
+
             #endregion
 
             #region Transients
@@ -128,6 +137,8 @@ namespace Pertuk.Business.Installers
             services.AddTransient<IValidator<ConfirmEmailRequestModel>, ConfirmEmailValidator>();
             services.AddTransient<IValidator<ForgotPasswordRequestModel>, ForgotPasswordValidator>();
             services.AddTransient<IValidator<RegisterRequestModel>, RegisterRequestValidator>();
+            services.AddTransient<IValidator<StudentUserRegisterRequestModel>, StudentUserRegisterRequestValidator>();
+            services.AddTransient<IValidator<TeacherUserRegisterRequestModel>, TeacherUserRegisterRequestValidator>();
 
             services.AddTransient<IEmailSender, EmailSender>();
 

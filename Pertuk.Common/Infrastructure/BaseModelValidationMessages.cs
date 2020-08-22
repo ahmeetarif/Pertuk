@@ -27,20 +27,16 @@
             public static string Number = "Password should contain at least one Number!";
         }
 
-        public static class Firstname
+        public static class Fullname
         {
-            public static string Valid = "Please enter valid Firstname!";
-            public static string Empty = "Please enter Firstname!";
-            public static string Max = string.Format($"Maximum Firstname length : {BaseModelLength.MaxFirstname}");
+            public static string Valid = "Please enter valid Name!";
+            public static string Empty = "Please enter Name!";
+            public static string Max = string.Format($"Maximum Firstname length : {BaseModelLength.MaxFullname}");
         }
 
-        public static class Lastname
+        public static class Department
         {
-            public static string Valid = "Please enter valid Lastname!";
-            public static string Empty = "Please enter Lastname!";
-            public static string Max = string.Format($"Maximum Lastname length : {BaseModelLength.MaxLastname}");
+            public static string Max = string.Format($"Maximum Department length : {BaseModelLength.MaxDepartment}");
         }
-
-
     }
 }

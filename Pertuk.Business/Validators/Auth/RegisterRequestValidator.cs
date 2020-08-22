@@ -8,9 +8,7 @@ namespace Pertuk.Business.Validators.Auth
     {
         public RegisterRequestValidator()
         {
-            RuleFor(x => x.Firstname).Firstname();
-
-            RuleFor(x => x.Lastname).Lastname();
+            RuleFor(x => x.Fullname).Fullname();
 
             RuleFor(x => x.Username).Username();
 

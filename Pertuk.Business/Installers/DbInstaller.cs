@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Pertuk.Business.CustomIdentity;
+using Pertuk.Business.CustomIdentity.Providers;
 using Pertuk.DataAccess;
 using Pertuk.Entities.Models;
 
@@ -11,7 +13,7 @@ namespace Pertuk.Business.Installers
     {
         public void InstallServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<PertukDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnectionString")));
+            services.AddDbContext<PertukDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("MainConnectionString")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -25,6 +27,9 @@ namespace Pertuk.Business.Installers
                 options.User.RequireUniqueEmail = true;
             })
                 .AddDefaultTokenProviders()
+                .AddUserManager<PertukUserManager>()
+                .AddTokenProvider<DigitTokenProvider>(DigitTokenProvider.EmailDigit)
+                .AddTokenProvider<DigitTokenProvider>(DigitTokenProvider.PhoneDigit)
                 .AddEntityFrameworkStores<PertukDbContext>();
         }
     }

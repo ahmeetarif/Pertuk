@@ -37,21 +37,27 @@ namespace Pertuk.Business.Extensions.ValidationExt
             return options;
         }
 
-        public static IRuleBuilder<T, string> Firstname<T>(this IRuleBuilder<T, string> ruleBuilder)
+        public static IRuleBuilder<T, string> Fullname<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
             var options = ruleBuilder
-                .NotEmpty().WithMessage(BaseModelValidationMessages.Firstname.Empty)
-                .MaximumLength(BaseModelLength.MaxFirstname).WithMessage(BaseModelValidationMessages.Firstname.Max)
-                .Must(IsValidName).WithMessage(BaseModelValidationMessages.Firstname.Valid);
+                .NotEmpty().WithMessage(BaseModelValidationMessages.Fullname.Empty)
+                .MaximumLength(BaseModelLength.MaxFullname).WithMessage(BaseModelValidationMessages.Fullname.Max)
+                .Must(IsValidName).WithMessage(BaseModelValidationMessages.Fullname.Valid);
             return options;
         }
 
-        public static IRuleBuilder<T, string> Lastname<T>(this IRuleBuilder<T, string> ruleBuilder)
+        public static IRuleBuilder<T, int> Grade<T>(this IRuleBuilder<T, int> ruleBuilder)
         {
             var options = ruleBuilder
-                .NotEmpty().WithMessage(BaseModelValidationMessages.Lastname.Empty)
-                .MaximumLength(BaseModelLength.MaxLastname).WithMessage(BaseModelValidationMessages.Lastname.Max)
-                .Must(IsValidName).WithMessage(BaseModelValidationMessages.Lastname.Valid);
+                .Empty();
+            return options;
+        }
+
+        public static IRuleBuilder<T, string> Department<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            var options = ruleBuilder
+                .Empty()
+                .MaximumLength(BaseModelLength.MaxDepartment).WithMessage(BaseModelValidationMessages.Department.Max);
             return options;
         }
 
@@ -83,7 +89,7 @@ namespace Pertuk.Business.Extensions.ValidationExt
 
         private static bool IsValidName(string name)
         {
-            var allowedNameCharacters = new Regex("^[a-zA-Z]*$");
+            var allowedNameCharacters = new Regex(@"^[\p{L} \.'\-]+$");
 
             if (allowedNameCharacters.IsMatch(name))
             {

@@ -2,9 +2,10 @@
 {
     public static class UserClaimTypes
     {
-        public static string Firstname = "Firstname";
-        public static string Lastname = "Lastname";
+        public static string Fullname = "Fullname";
         public static string Username = "Username";
         public static string Email = "Email";
+        public static string Department = "Department";
+        public static string Grade = "Grade";
     }
 }
