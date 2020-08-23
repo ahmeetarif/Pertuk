@@ -65,6 +65,8 @@ namespace Pertuk.Business.Services.Concrete
             _pertukUserManager = pertukUserManager;
         }
 
+        #region Finished Methods
+
         public async Task<AuthenticationResponseModel> RegisterStudentAsync(StudentUserRegisterRequestModel studentUser)
         {
             if (studentUser == null) throw new PertukApiException(BaseErrorResponseMessages.EnterUserDetail);
@@ -79,8 +81,9 @@ namespace Pertuk.Business.Services.Concrete
                 Email = studentUser.Email,
                 CreatedAt = DateTime.Now
             };
-            var passwordHash = _pertukUserManager.PasswordHasher.HashPassword(applicationIdentity, studentUser.Password);
-            applicationIdentity.PasswordHash = passwordHash;
+
+            var passwordHasher = await _pertukUserManager.UpdatePasswordHash(applicationIdentity, studentUser.Password);
+            if (!passwordHasher.Succeeded) throw new PertukApiException();
 
             var studentIdentity = new StudentUsers
             {
@@ -93,6 +96,7 @@ namespace Pertuk.Business.Services.Concrete
 
             if (result == EntityState.Added)
             {
+                await GenerateAndSendEmailConfirmationLink(applicationIdentity);
                 var token = _tokenService.CreateToken(applicationIdentity);
                 return new AuthenticationResponseModel
                 {
@@ -119,8 +123,9 @@ namespace Pertuk.Business.Services.Concrete
                 Email = teacherUser.Email,
                 CreatedAt = DateTime.Now
             };
-            var passwordHash = _pertukUserManager.PasswordHasher.HashPassword(applicationIdentity, teacherUser.Password);
-            applicationIdentity.PasswordHash = passwordHash;
+
+            var passwordHasher = await _pertukUserManager.UpdatePasswordHash(applicationIdentity, teacherUser.Password);
+            if (!passwordHasher.Succeeded) throw new PertukApiException();
 
             var teacherIdentity = new TeacherUsers
             {
@@ -166,6 +171,8 @@ namespace Pertuk.Business.Services.Concrete
             };
         }
 
+        #endregion
+
         public async Task<AuthenticationResponseModel> ConfirmEmailAsync(ConfirmEmailRequestModel confirmEmailRequest)
         {
             if (confirmEmailRequest == null) throw new PertukApiException("Fill detail");
@@ -173,7 +180,6 @@ namespace Pertuk.Business.Services.Concrete
             if (string.IsNullOrEmpty(confirmEmailRequest.DigitCode) && string.IsNullOrWhiteSpace(confirmEmailRequest.DigitCode)) throw new PertukApiException(BaseErrorResponseMessages.InvalidDigitCode);
 
             var userDetail = await _pertukUserManager.FindByIdAsync(confirmEmailRequest.UserId);
-
             if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.UserNotFound);
 
             var isEmailConfirmed = await _pertukUserManager.IsEmailConfirmedAsync(userDetail);
@@ -193,25 +199,25 @@ namespace Pertuk.Business.Services.Concrete
             throw new PertukApiException();
         }
 
-        public async Task<UserResponseModel> SendEmailConfirmation(string userId)
+        public async Task<AuthenticationResponseModel> SendEmailConfirmation(string userId)
         {
             var userDetail = await _pertukUserManager.FindByIdAsync(userId);
 
             if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.UserNotFound);
 
-            GenerateAndSendEmailConfirmationLink(userDetail);
+            await GenerateAndSendEmailConfirmationLink(userDetail);
 
-            return new UserResponseModel
+            return new AuthenticationResponseModel
             {
                 IsSuccess = true,
-                Message = "Confirmation link has successfuly sent to your email address!"
+                Message = BaseErrorResponseMessages.ConfirmationCodeSentSuccessfully
             };
         }
 
-        public async Task<UserResponseModel> SendResetPasswordLink(ForgotPasswordRequestModel forgotPasswordRequest)
+        public async Task<AuthenticationResponseModel> SendResetPasswordLink(ForgotPasswordRequestModel forgotPasswordRequest)
         {
             if (string.IsNullOrEmpty(forgotPasswordRequest.Email) && string.IsNullOrWhiteSpace(forgotPasswordRequest.Email))
-                return new UserResponseModel
+                return new AuthenticationResponseModel
                 {
                     IsSuccess = false,
                     Message = "Enter Email Address!"
@@ -220,7 +226,7 @@ namespace Pertuk.Business.Services.Concrete
             var userDetail = await _pertukUserManager.FindByEmailAsync(forgotPasswordRequest.Email);
 
             if (userDetail == null)
-                return new UserResponseModel
+                return new AuthenticationResponseModel
                 {
                     IsSuccess = false,
                     Message = $"User with : {forgotPasswordRequest.Email} not found!"
@@ -228,17 +234,17 @@ namespace Pertuk.Business.Services.Concrete
 
             GenerateAndSendResetPasswordLink(userDetail);
 
-            return new UserResponseModel
+            return new AuthenticationResponseModel
             {
                 IsSuccess = true,
                 Message = "Reset password link has successfuly sent to your email address!"
             };
         }
 
-        public async Task<UserResponseModel> ResetPassword(ResetPasswordRequestModel resetPasswordRequest)
+        public async Task<AuthenticationResponseModel> ResetPassword(ResetPasswordRequestModel resetPasswordRequest)
         {
             if (string.IsNullOrEmpty(resetPasswordRequest.Email) && string.IsNullOrWhiteSpace(resetPasswordRequest.Email) || string.IsNullOrEmpty(resetPasswordRequest.Token) && string.IsNullOrWhiteSpace(resetPasswordRequest.Token))
-                return new UserResponseModel
+                return new AuthenticationResponseModel
                 {
                     IsSuccess = false,
                     Message = "Invalid URL!"
@@ -246,7 +252,7 @@ namespace Pertuk.Business.Services.Concrete
 
             var userDetail = await _pertukUserManager.FindByEmailAsync(resetPasswordRequest.Email);
             if (userDetail == null)
-                return new UserResponseModel
+                return new AuthenticationResponseModel
                 {
                     IsSuccess = false,
                     Message = $"User with : {resetPasswordRequest.Email} not found!"
@@ -259,7 +265,7 @@ namespace Pertuk.Business.Services.Concrete
 
             if (resetPasswordResult.Succeeded)
             {
-                return new UserResponseModel
+                return new AuthenticationResponseModel
                 {
                     IsSuccess = true,
                     Message = "Reset password successful!"
@@ -267,7 +273,7 @@ namespace Pertuk.Business.Services.Concrete
             }
             else
             {
-                return new UserResponseModel
+                return new AuthenticationResponseModel
                 {
                     IsSuccess = false,
                     Message = "Error while reseting your password!",
@@ -278,7 +284,7 @@ namespace Pertuk.Business.Services.Concrete
 
         #region Private Functions
 
-        private async void GenerateAndSendEmailConfirmationLink(ApplicationUser userDetail)
+        private async Task GenerateAndSendEmailConfirmationLink(ApplicationUser userDetail)
         {
             var mailOptions = new MailOptions();
             _configuration.GetSection(nameof(MailOptions)).Bind(mailOptions);

@@ -9,9 +9,9 @@ namespace Pertuk.Business.Services.Abstract
         Task<AuthenticationResponseModel> RegisterStudentAsync(StudentUserRegisterRequestModel studentUser);
         Task<AuthenticationResponseModel> RegisterTeacherAsync(TeacherUserRegisterRequestModel teacherUser);
         Task<AuthenticationResponseModel> LoginAsync(LoginRequestModel loginRequestModel);
-        Task<UserResponseModel> SendEmailConfirmation(string userId);
+        Task<AuthenticationResponseModel> SendEmailConfirmation(string userId);
         Task<AuthenticationResponseModel> ConfirmEmailAsync(ConfirmEmailRequestModel confirmEmailRequest);
-        Task<UserResponseModel> SendResetPasswordLink(ForgotPasswordRequestModel forgotPasswordRequest);
-        Task<UserResponseModel> ResetPassword(ResetPasswordRequestModel resetPasswordRequest);
+        Task<AuthenticationResponseModel> SendResetPasswordLink(ForgotPasswordRequestModel forgotPasswordRequest);
+        Task<AuthenticationResponseModel> ResetPassword(ResetPasswordRequestModel resetPasswordRequest);
     }
 }
