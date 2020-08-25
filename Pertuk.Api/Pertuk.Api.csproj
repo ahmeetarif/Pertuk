@@ -12,5 +12,9 @@
     <ProjectReference Include="..\Pertuk.Business\Pertuk.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\Templates\Email_Templates\Email_Confirmation_Template.html" />
+  </ItemGroup>
+
 
 </Project>

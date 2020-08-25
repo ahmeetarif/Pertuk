@@ -1,14 +1,17 @@
-﻿using Microsoft.AspNetCore.Html;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json.Serialization;
 using Pertuk.Business.CustomIdentity;
 using Pertuk.Business.CustomIdentity.Providers;
+using Pertuk.Business.Extensions.EmailExt;
 using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Common.Exceptions;
@@ -20,10 +23,14 @@ using Pertuk.Dto.Responses.Auth;
 using Pertuk.Entities.Models;
 using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Net.Mail;
+using System.Net.Mime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Concrete
@@ -286,31 +293,14 @@ namespace Pertuk.Business.Services.Concrete
 
         private async Task GenerateAndSendEmailConfirmationLink(ApplicationUser userDetail)
         {
-            var mailOptions = new MailOptions();
-            _configuration.GetSection(nameof(MailOptions)).Bind(mailOptions);
-
             var confirmationDigitCode = await _pertukUserManager.GenerateDigitCodeForEmailConfirmationAsync(userDetail);
 
-            var messageBody = "<h1>Welcome to Pertuk</h1><br />" +
-                "<h3>Please confirm your Email to get access all resources</h3><br />" +
-                $"This is your confirmation code : {confirmationDigitCode}" +
-                "<h6>Note: ( Keep in mind the code is valid for 1 day. )</h6>";
-
-            await _emailSender.SendEmailAsync(userDetail.Email, "Pertuk Email Confirmation", messageBody);
+            await _emailSender.SendEmailConfirmation(confirmationDigitCode, userDetail.Email, userDetail.Fullname);
         }
 
-        private async void GenerateAndSendResetPasswordLink(ApplicationUser userDetail)
+        private async Task GenerateAndSendResetPasswordLink(ApplicationUser userDetail)
         {
-            var mailOptions = new MailOptions();
-            _configuration.GetSection(nameof(MailOptions)).Bind(mailOptions);
-
-            var resetPasswordCode = await _pertukUserManager.GeneratePasswordResetTokenAsync(userDetail);
-            var resetPasswordCodeInBytes = Encoding.UTF8.GetBytes(resetPasswordCode);
-            var encodedResetPasswordCode = WebEncoders.Base64UrlEncode(resetPasswordCodeInBytes);
-
-            var url = $"{mailOptions.BaseUrl}/auth/resetpassword?email={userDetail.Email}&token={encodedResetPasswordCode}";
-
-            await _emailSender.SendEmailAsync(userDetail.Email, "Pertuk Reset Password", url);
+            // await _emailSender.SendEmailAsync(userDetail.Email, "Pertuk Reset Password", url);
         }
 
         private async Task CheckUserDetail(string email, string username)
