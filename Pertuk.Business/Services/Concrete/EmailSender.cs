@@ -12,22 +12,22 @@ namespace Pertuk.Business.Services.Concrete
         #region Private Variables
 
         private readonly IConfiguration _configuration;
+        public SendGridEmailSettings SendGridEmailSetting { get; set; }
 
         #endregion
 
         public EmailSender(IConfiguration configuration)
         {
             _configuration = configuration;
+            SendGridEmailSetting = new SendGridEmailSettings();
+            _configuration.GetSection(nameof(SendGridEmailSettings)).Bind(SendGridEmailSetting);
         }
 
         public async Task SendEmailAsync(string toEmail, string subject, string message)
         {
-            var sendGridEmailSettings = new SendGridEmailSettings();
-            _configuration.GetSection(nameof(SendGridEmailSettings)).Bind(sendGridEmailSettings);
-
-            var apiKey = sendGridEmailSettings.ApiKey;
+            var apiKey = SendGridEmailSetting.ApiKey;
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress(sendGridEmailSettings.FromEmail, sendGridEmailSettings.FromName);
+            var from = new EmailAddress(SendGridEmailSetting.FromEmail, SendGridEmailSetting.FromName);
             var to = new EmailAddress(toEmail);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, message, message);
             var response = await client.SendEmailAsync(msg);
