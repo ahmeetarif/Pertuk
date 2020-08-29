@@ -136,7 +136,6 @@ namespace Pertuk.Business.Installers
             services.AddTransient<IValidator<ResetPasswordRequestModel>, ResetPasswordValidator>();
             services.AddTransient<IValidator<ConfirmEmailRequestModel>, ConfirmEmailValidator>();
             services.AddTransient<IValidator<ForgotPasswordRequestModel>, ForgotPasswordValidator>();
-            services.AddTransient<IValidator<RegisterRequestModel>, RegisterRequestValidator>();
             services.AddTransient<IValidator<StudentUserRegisterRequestModel>, StudentUserRegisterRequestValidator>();
             services.AddTransient<IValidator<TeacherUserRegisterRequestModel>, TeacherUserRegisterRequestValidator>();
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
@@ -47,7 +48,6 @@ namespace Pertuk.Business.Services.Concrete
         private readonly ITeacherUsersRepository _teacherUsersRepository;
         private readonly IBannedUsersRepository _bannedUsersRepository;
         private readonly IDeletedUsersRepository _deletedUsersRepository;
-        private readonly DigitTokenProvider _digitTokenProvider;
 
         #endregion
 
@@ -58,7 +58,6 @@ namespace Pertuk.Business.Services.Concrete
                             ITeacherUsersRepository teacherUsersRepository,
                             IBannedUsersRepository bannedUsersRepository,
                             IDeletedUsersRepository deletedUsersRepository,
-                            DigitTokenProvider digitTokenProvider,
                             PertukUserManager pertukUserManager)
         {
             _tokenService = tokenService;
@@ -68,7 +67,6 @@ namespace Pertuk.Business.Services.Concrete
             _teacherUsersRepository = teacherUsersRepository;
             _bannedUsersRepository = bannedUsersRepository;
             _deletedUsersRepository = deletedUsersRepository;
-            _digitTokenProvider = digitTokenProvider;
             _pertukUserManager = pertukUserManager;
         }
 
@@ -223,28 +221,16 @@ namespace Pertuk.Business.Services.Concrete
 
         public async Task<AuthenticationResponseModel> SendResetPasswordLink(ForgotPasswordRequestModel forgotPasswordRequest)
         {
-            if (string.IsNullOrEmpty(forgotPasswordRequest.Email) && string.IsNullOrWhiteSpace(forgotPasswordRequest.Email))
-                return new AuthenticationResponseModel
-                {
-                    IsSuccess = false,
-                    Message = "Enter Email Address!"
-                };
-
             var userDetail = await _pertukUserManager.FindByEmailAsync(forgotPasswordRequest.Email);
 
-            if (userDetail == null)
-                return new AuthenticationResponseModel
-                {
-                    IsSuccess = false,
-                    Message = $"User with : {forgotPasswordRequest.Email} not found!"
-                };
+            if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.UserNotFound);
 
-            GenerateAndSendResetPasswordLink(userDetail);
+            await GenerateAndSendResetPasswordLink(userDetail);
 
             return new AuthenticationResponseModel
             {
                 IsSuccess = true,
-                Message = "Reset password link has successfuly sent to your email address!"
+                Message = BaseErrorResponseMessages.ConfirmationCodeSentSuccessfully
             };
         }
 
@@ -300,7 +286,9 @@ namespace Pertuk.Business.Services.Concrete
 
         private async Task GenerateAndSendResetPasswordLink(ApplicationUser userDetail)
         {
-            // await _emailSender.SendEmailAsync(userDetail.Email, "Pertuk Reset Password", url);
+            var resetPasswordDigitCode = await _pertukUserManager.GenerateDigitCodeForEmailConfirmationAsync(userDetail);
+
+            await _emailSender.SendResetPassword(resetPasswordDigitCode, userDetail.Email, userDetail.Fullname);
         }
 
         private async Task CheckUserDetail(string email, string username)

@@ -10,6 +10,7 @@ namespace Pertuk.Entities.Models
         public string Department { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string ProfileImagePath { get; set; }
 
         public virtual BannedUsers BannedUsers { get; set; }
         public virtual DeletedUsers DeletedUsers { get; set; }

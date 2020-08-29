@@ -30,7 +30,7 @@ namespace Pertuk.Business.Services.Concrete
             var from = new EmailAddress(SendGridEmailSetting.FromEmail, SendGridEmailSetting.FromName);
             var to = new EmailAddress(toEmail);
             var msg = MailHelper.CreateSingleEmail(from, to, subject, message, message);
-            var response = await client.SendEmailAsync(msg);
+            Response response = await client.SendEmailAsync(msg);
         }
     }
 }

@@ -38,6 +38,15 @@ namespace Pertuk.Business.Extensions.EmailExt
             await emailSender.SendEmailAsync(email, messageSubject, messageBody);
         }
 
+        public static async Task SendResetPassword(this IEmailSender emailSender, string digitCode, string email, string fullname)
+        {
+            string messageSubject = "Pertuk Reset Password";
+
+            string messageBody = ConfigureResetPasswordMessageBody(digitCode, fullname);
+
+            await emailSender.SendEmailAsync(email, messageSubject, messageBody);
+        }
+
         #region Private Functions
 
         private static string ConfigureEmailConfirmationMessageBody(string digitCode, string fullname)
@@ -56,6 +65,24 @@ namespace Pertuk.Business.Extensions.EmailExt
 
             messageBody = messageBody.ReplaceRange(replacements);
 
+            return messageBody;
+        }
+
+        private static string ConfigureResetPasswordMessageBody(string digitCode, string fullname)
+        {
+            string messageBody = string.Empty;
+
+            using (StreamReader sourceReader = File.OpenText("wwwroot/Templates/Email_Templates/Reset_Password_Template.html"))
+            {
+                messageBody = sourceReader.ReadToEnd();
+                sourceReader.Close();
+            }
+
+            string templatePath = MediaOption.SitePath + MediaOption.TemplateDirectoryPath;
+
+            Dictionary<string, string> replacements = new Dictionary<string, string>() { { "[digitcode]", digitCode }, { "[fullname]", fullname }, { "[pertuklogo]", templatePath + BaseMediaPaths.Templates.pertukLogo }, { "[facebook]", templatePath + BaseMediaPaths.Templates.facebook }, { "[twitter]", templatePath + BaseMediaPaths.Templates.twitter }, { "[instagram]", templatePath + BaseMediaPaths.Templates.instagram }, { "[whitedown]", templatePath + BaseMediaPaths.Templates.whiteDown } };
+
+            messageBody = messageBody.ReplaceRange(replacements);
             return messageBody;
         }
 

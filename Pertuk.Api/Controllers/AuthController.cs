@@ -21,6 +21,8 @@ namespace Pertuk.Api.Controllers
             _authService = authService;
         }
 
+        #region Register
+
         [HttpPost("RegisterStudent")]
         public async Task<IActionResult> RegisterStudent([FromBody] StudentUserRegisterRequestModel studentUserModel)
         {
@@ -36,6 +38,10 @@ namespace Pertuk.Api.Controllers
             return Ok(response);
         }
 
+        #endregion
+
+        #region Login
+
         [HttpPost("LoginUser")]
         public async Task<IActionResult> LoginUser([FromBody] LoginRequestModel loginRequest)
         {
@@ -43,6 +49,10 @@ namespace Pertuk.Api.Controllers
 
             return Ok(response);
         }
+
+        #endregion
+
+        #region Email Confirmation
 
         [HttpPost("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(ConfirmEmailRequestModel confirmEmailRequestModel)
@@ -59,5 +69,19 @@ namespace Pertuk.Api.Controllers
 
             return Ok(response);
         }
+
+        #endregion
+
+        #region Reset Password
+
+        [HttpPost("SendResetPassword")]
+        public async Task<IActionResult> SendResetPassword([FromBody] ForgotPasswordRequestModel forgotPasswordRequestModel)
+        {
+            var response = await _authService.SendResetPasswordLink(forgotPasswordRequestModel);
+
+            return Ok(response);
+        }
+
+        #endregion
     }
 }
