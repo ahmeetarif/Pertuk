@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Pertuk.Business.BunnyCDN;
 using Pertuk.Business.Filters;
 using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
@@ -45,6 +46,8 @@ namespace Pertuk.Business.Installers
             JwtConfiguration(services, configuration);
 
             ConfigureDependencies(services);
+
+            OptionsConfiguration(services, configuration);
         }
 
         #region Private Functions
@@ -122,11 +125,14 @@ namespace Pertuk.Business.Installers
 
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUploadImageService, UploadImageService>();
 
             services.AddScoped<IStudentUsersRepository, StudentUsersRepository>();
             services.AddScoped<ITeacherUsersRepository, TeacherUsersRepository>();
             services.AddScoped<IBannedUsersRepository, BannedUsersRepository>();
             services.AddScoped<IDeletedUsersRepository, DeletedUsersRepository>();
+
+            services.AddScoped<BunnyCDNService>();
 
             #endregion
 
@@ -142,6 +148,11 @@ namespace Pertuk.Business.Installers
             services.AddTransient<IEmailSender, EmailSender>();
 
             #endregion
+        }
+
+        private void OptionsConfiguration(IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<MediaOptions>(options => configuration.GetSection(nameof(MediaOptions)).Bind(options));
         }
 
         #endregion

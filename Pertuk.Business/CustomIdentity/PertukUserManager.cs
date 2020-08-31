@@ -1,12 +1,18 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Pertuk.Business.BunnyCDN;
 using Pertuk.Business.CustomIdentity.Providers;
 using Pertuk.Business.CustomIdentity.Statics;
+using Pertuk.Business.Options;
+using Pertuk.Common.Exceptions;
 using Pertuk.Entities.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.CustomIdentity
@@ -73,7 +79,37 @@ namespace Pertuk.Business.CustomIdentity
             return result;
         }
 
+        //public override async Task<IdentityResult> CreateAsync(ApplicationUser user)
+        //{
+        //    ThrowIfDisposed();
+        //    await UpdateSecurityStampInternal(user);
+        //    var result = await ValidateUserAsync(user);
+        //    if (!result.Succeeded)
+        //    {
+        //        return result;
+        //    }
+        //    if (Options.Lockout.AllowedForNewUsers && SupportsUserLockout)
+        //    {
+        //        await GetUserLockoutStore().SetLockoutEnabledAsync(user, true, CancellationToken);
+        //    }
+
+        //    await UpdateNormalizedUserNameAsync(user);
+        //    await UpdateNormalizedEmailAsync(user);
+        //    await SetProfileImagePath(user, user.ProfileImagePath);
+
+        //    return await Store.CreateAsync(user, CancellationToken);
+        //}
+
         #region Private Functions
+
+        private Task SetProfileImagePath(ApplicationUser user, string profileImagePath, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ThrowIfDisposed();
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            user.ProfileImagePath = profileImagePath;
+            return Task.CompletedTask;
+        }
 
         private IUserEmailStore<ApplicationUser> GetEmailStore(bool throwOnFail = true)
         {
@@ -134,6 +170,16 @@ namespace Pertuk.Business.CustomIdentity
             byte[] bytes = new byte[20];
             _rng.GetBytes(bytes);
             return Base32.ToBase32(bytes);
+        }
+
+        private IUserLockoutStore<ApplicationUser> GetUserLockoutStore()
+        {
+            var cast = Store as IUserLockoutStore<ApplicationUser>;
+            if (cast == null)
+            {
+                throw new NotSupportedException();
+            }
+            return cast;
         }
 
         #endregion

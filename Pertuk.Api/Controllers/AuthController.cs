@@ -24,7 +24,7 @@ namespace Pertuk.Api.Controllers
         #region Register
 
         [HttpPost("RegisterStudent")]
-        public async Task<IActionResult> RegisterStudent([FromBody] StudentUserRegisterRequestModel studentUserModel)
+        public async Task<IActionResult> RegisterStudent([FromForm] StudentUserRegisterRequestModel studentUserModel)
         {
             var response = await _authService.RegisterStudentAsync(studentUserModel);
 

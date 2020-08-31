@@ -1,37 +1,25 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Html;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
+﻿using BunnyCDN.Net.Storage;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.ObjectPool;
-using Microsoft.VisualBasic;
-using Newtonsoft.Json.Serialization;
+using Microsoft.Extensions.Options;
+using Pertuk.Business.BunnyCDN;
 using Pertuk.Business.CustomIdentity;
-using Pertuk.Business.CustomIdentity.Providers;
 using Pertuk.Business.Extensions.EmailExt;
 using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Common.Exceptions;
 using Pertuk.Common.Infrastructure;
 using Pertuk.DataAccess.Repositories.Abstract;
-using Pertuk.DataAccess.Repositories.Concrete;
 using Pertuk.Dto.Requests.Auth;
 using Pertuk.Dto.Responses.Auth;
 using Pertuk.Entities.Models;
 using System;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
-using System.Net.Mime;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Concrete
@@ -42,32 +30,38 @@ namespace Pertuk.Business.Services.Concrete
 
         private readonly PertukUserManager _pertukUserManager;
         private readonly ITokenService _tokenService;
-        private readonly IConfiguration _configuration;
         private readonly IEmailSender _emailSender;
         private readonly IStudentUsersRepository _studentUsersRepository;
         private readonly ITeacherUsersRepository _teacherUsersRepository;
         private readonly IBannedUsersRepository _bannedUsersRepository;
         private readonly IDeletedUsersRepository _deletedUsersRepository;
+        private readonly BunnyCDNService _bunnyCDNService;
+        private readonly MediaOptions _mediaOptions;
+        private readonly IConfiguration _configuration;
 
         #endregion
 
         public AuthService(ITokenService tokenService,
-                            IConfiguration configuration,
                             IEmailSender emailSender,
                             IStudentUsersRepository studentUsersRepository,
                             ITeacherUsersRepository teacherUsersRepository,
                             IBannedUsersRepository bannedUsersRepository,
                             IDeletedUsersRepository deletedUsersRepository,
-                            PertukUserManager pertukUserManager)
+                            PertukUserManager pertukUserManager,
+                            BunnyCDNService bunnyCDNService,
+                            IConfiguration configuration,
+                            IOptions<MediaOptions> mediaOptions)
         {
             _tokenService = tokenService;
-            _configuration = configuration;
             _emailSender = emailSender;
             _studentUsersRepository = studentUsersRepository;
             _teacherUsersRepository = teacherUsersRepository;
             _bannedUsersRepository = bannedUsersRepository;
             _deletedUsersRepository = deletedUsersRepository;
             _pertukUserManager = pertukUserManager;
+            _bunnyCDNService = bunnyCDNService;
+            _configuration = configuration;
+            _mediaOptions = mediaOptions.Value;
         }
 
         #region Finished Methods
@@ -78,13 +72,16 @@ namespace Pertuk.Business.Services.Concrete
 
             await CheckAndVerifyUserDetailForRegistering(studentUser.Email, studentUser.Username);
 
+            var defaultProfileImagePath = _mediaOptions.EmptyProfilePicture;
+
             var applicationIdentity = new ApplicationUser
             {
                 Fullname = studentUser.Fullname,
                 Department = studentUser.Department,
                 UserName = studentUser.Username,
                 Email = studentUser.Email,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                ProfileImagePath = defaultProfileImagePath
             };
 
             var passwordHasher = await _pertukUserManager.UpdatePasswordHash(applicationIdentity, studentUser.Password);
@@ -101,7 +98,7 @@ namespace Pertuk.Business.Services.Concrete
 
             if (result == EntityState.Added)
             {
-                await GenerateAndSendEmailConfirmationLink(applicationIdentity);
+                try { await GenerateAndSendEmailConfirmationLink(applicationIdentity); } catch (Exception) { throw new PertukApiException(); };
                 var token = _tokenService.CreateToken(applicationIdentity);
                 return new AuthenticationResponseModel
                 {
@@ -120,13 +117,16 @@ namespace Pertuk.Business.Services.Concrete
 
             await CheckAndVerifyUserDetailForRegistering(teacherUser.Email, teacherUser.Username);
 
+            var defaultProfileImagePath = _mediaOptions.EmptyProfilePicture;
+
             var applicationIdentity = new ApplicationUser
             {
                 Fullname = teacherUser.Fullname,
                 Department = teacherUser.Department,
                 UserName = teacherUser.Username,
                 Email = teacherUser.Email,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now,
+                ProfileImagePath = defaultProfileImagePath
             };
 
             var passwordHasher = await _pertukUserManager.UpdatePasswordHash(applicationIdentity, teacherUser.Password);
@@ -142,6 +142,7 @@ namespace Pertuk.Business.Services.Concrete
 
             if (result == EntityState.Added)
             {
+                try { await GenerateAndSendEmailConfirmationLink(applicationIdentity); } catch (Exception) { throw new PertukApiException(); };
                 var token = _tokenService.CreateToken(applicationIdentity);
                 return new AuthenticationResponseModel
                 {
@@ -336,6 +337,22 @@ namespace Pertuk.Business.Services.Concrete
                 throw new PertukApiException($"This user was banned on : {bannedUser.BannedAt.ToShortDateString()}");
             }
         }
+
+        //private async Task<string> UploadImage(IFormFile formFile)
+        //{
+        //    var defaultPath = MediaOptions.StorageZoneName + MediaOptions.PostsDirectoryPath;
+
+        //    var destination = Path.Combine(defaultPath, Guid.NewGuid().ToString());
+
+        //    var newDestination = destination + ".jpg";
+
+        //    using (Stream reader = formFile.OpenReadStream())
+        //    {
+        //        await _bunnyCDNService.UploadAsync(reader, newDestination);
+        //    }
+
+        //    return newDestination;
+        //}
 
         #endregion
     }
