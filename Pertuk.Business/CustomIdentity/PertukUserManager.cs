@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Pertuk.Business.BunnyCDN;
@@ -7,10 +8,12 @@ using Pertuk.Business.CustomIdentity.Providers;
 using Pertuk.Business.CustomIdentity.Statics;
 using Pertuk.Business.Options;
 using Pertuk.Common.Exceptions;
+using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.Entities.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,10 +24,17 @@ namespace Pertuk.Business.CustomIdentity
     {
         private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
         private readonly DigitTokenProvider _digitTokenProvider;
-        public PertukUserManager(IUserStore<ApplicationUser> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<ApplicationUser> passwordHasher, IEnumerable<IUserValidator<ApplicationUser>> userValidators, IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<ApplicationUser>> logger, DigitTokenProvider digitTokenProvider)
+        private readonly IBannedUsersRepository _bannedUsersRepository;
+        private readonly IDeletedUsersRepository _deletedUsersRepository;
+        public PertukUserManager(IUserStore<ApplicationUser> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<ApplicationUser> passwordHasher, IEnumerable<IUserValidator<ApplicationUser>> userValidators, IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<ApplicationUser>> logger,
+            DigitTokenProvider digitTokenProvider,
+            IBannedUsersRepository bannedUsersRepository,
+            IDeletedUsersRepository deletedUsersRepository)
             : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
         {
             _digitTokenProvider = digitTokenProvider;
+            _bannedUsersRepository = bannedUsersRepository;
+            _deletedUsersRepository = deletedUsersRepository;
         }
 
         /// <summary>
@@ -79,37 +89,39 @@ namespace Pertuk.Business.CustomIdentity
             return result;
         }
 
-        //public override async Task<IdentityResult> CreateAsync(ApplicationUser user)
-        //{
-        //    ThrowIfDisposed();
-        //    await UpdateSecurityStampInternal(user);
-        //    var result = await ValidateUserAsync(user);
-        //    if (!result.Succeeded)
-        //    {
-        //        return result;
-        //    }
-        //    if (Options.Lockout.AllowedForNewUsers && SupportsUserLockout)
-        //    {
-        //        await GetUserLockoutStore().SetLockoutEnabledAsync(user, true, CancellationToken);
-        //    }
-
-        //    await UpdateNormalizedUserNameAsync(user);
-        //    await UpdateNormalizedEmailAsync(user);
-        //    await SetProfileImagePath(user, user.ProfileImagePath);
-
-        //    return await Store.CreateAsync(user, CancellationToken);
-        //}
-
-        #region Private Functions
-
-        private Task SetProfileImagePath(ApplicationUser user, string profileImagePath, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async Task<IdentityResult> ResetPasswordWithDigitCodeAsync(ApplicationUser user, string digitCode, string newPassword)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             ThrowIfDisposed();
             if (user == null) throw new ArgumentNullException(nameof(user));
-            user.ProfileImagePath = profileImagePath;
-            return Task.CompletedTask;
+
+            if (!await _digitTokenProvider.ValidateAsync(DigitTokenProvider.EmailDigit, digitCode, this, user))
+            {
+                return IdentityResult.Failed(ErrorDescriber.InvalidToken());
+            }
+
+            var result = await UpdatePasswordHash(user, newPassword, validatePassword: true);
+            if (!result.Succeeded) return result;
+
+            return await UpdateUserAsync(user);
         }
+
+        public virtual void CheckUserBanAndDeletion(string userId)
+        {
+            try
+            {
+                var isBanned = _bannedUsersRepository.GetById(userId);
+                if (isBanned != null && isBanned.IsActive == true) throw new PertukApiException($"This user was banned on : {isBanned.BannedAt.ToShortDateString()}");
+
+                var isDeleted = _deletedUsersRepository.GetById(userId);
+                if (isDeleted != null && isDeleted.IsActive == true) throw new PertukApiException($"This user was deleted on : {isDeleted.DeletedAt.ToShortDateString()}");
+            }
+            catch (Exception)
+            {
+                throw new PertukApiException();
+            }
+        }
+
+        #region Private Functions
 
         private IUserEmailStore<ApplicationUser> GetEmailStore(bool throwOnFail = true)
         {

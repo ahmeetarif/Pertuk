@@ -17,10 +17,10 @@ namespace Pertuk.DataAccess.BaseRepository
             table = _pertukDbContext.Set<TEntity>();
         }
 
-        public virtual Task<EntityState> Add(TEntity entity)
+        public virtual async Task<EntityState> Add(TEntity entity)
         {
             var res = table.Add(entity);
-            return Task.FromResult(res.State);
+            return await Task.FromResult(res.State);
         }
 
         public virtual IEnumerable<TEntity> GetAll()

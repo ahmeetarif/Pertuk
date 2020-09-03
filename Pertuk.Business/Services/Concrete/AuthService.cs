@@ -1,11 +1,5 @@
-﻿using BunnyCDN.Net.Storage;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Update;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Pertuk.Business.BunnyCDN;
 using Pertuk.Business.CustomIdentity;
 using Pertuk.Business.Extensions.EmailExt;
 using Pertuk.Business.Options;
@@ -17,9 +11,6 @@ using Pertuk.Dto.Requests.Auth;
 using Pertuk.Dto.Responses.Auth;
 using Pertuk.Entities.Models;
 using System;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Concrete
@@ -33,11 +24,7 @@ namespace Pertuk.Business.Services.Concrete
         private readonly IEmailSender _emailSender;
         private readonly IStudentUsersRepository _studentUsersRepository;
         private readonly ITeacherUsersRepository _teacherUsersRepository;
-        private readonly IBannedUsersRepository _bannedUsersRepository;
-        private readonly IDeletedUsersRepository _deletedUsersRepository;
-        private readonly BunnyCDNService _bunnyCDNService;
         private readonly MediaOptions _mediaOptions;
-        private readonly IConfiguration _configuration;
 
         #endregion
 
@@ -45,30 +32,20 @@ namespace Pertuk.Business.Services.Concrete
                             IEmailSender emailSender,
                             IStudentUsersRepository studentUsersRepository,
                             ITeacherUsersRepository teacherUsersRepository,
-                            IBannedUsersRepository bannedUsersRepository,
-                            IDeletedUsersRepository deletedUsersRepository,
                             PertukUserManager pertukUserManager,
-                            BunnyCDNService bunnyCDNService,
-                            IConfiguration configuration,
                             IOptions<MediaOptions> mediaOptions)
         {
             _tokenService = tokenService;
             _emailSender = emailSender;
             _studentUsersRepository = studentUsersRepository;
             _teacherUsersRepository = teacherUsersRepository;
-            _bannedUsersRepository = bannedUsersRepository;
-            _deletedUsersRepository = deletedUsersRepository;
             _pertukUserManager = pertukUserManager;
-            _bunnyCDNService = bunnyCDNService;
-            _configuration = configuration;
             _mediaOptions = mediaOptions.Value;
         }
 
-        #region Finished Methods
-
         public async Task<AuthenticationResponseModel> RegisterStudentAsync(StudentUserRegisterRequestModel studentUser)
         {
-            if (studentUser == null) throw new PertukApiException(BaseErrorResponseMessages.EnterUserDetail);
+            if (studentUser == null) throw new PertukApiException(BaseErrorResponseMessages.User.EnterUserDetail);
 
             await CheckAndVerifyUserDetailForRegistering(studentUser.Email, studentUser.Username);
 
@@ -102,7 +79,7 @@ namespace Pertuk.Business.Services.Concrete
                 var token = _tokenService.CreateToken(applicationIdentity);
                 return new AuthenticationResponseModel
                 {
-                    Message = "User Created successfully!",
+                    Message = "User created successfully!",
                     IsSuccess = true,
                     Token = token
                 };
@@ -113,7 +90,7 @@ namespace Pertuk.Business.Services.Concrete
 
         public async Task<AuthenticationResponseModel> RegisterTeacherAsync(TeacherUserRegisterRequestModel teacherUser)
         {
-            if (teacherUser == null) throw new PertukApiException(BaseErrorResponseMessages.EnterUserDetail);
+            if (teacherUser == null) throw new PertukApiException(BaseErrorResponseMessages.User.EnterUserDetail);
 
             await CheckAndVerifyUserDetailForRegistering(teacherUser.Email, teacherUser.Username);
 
@@ -146,7 +123,7 @@ namespace Pertuk.Business.Services.Concrete
                 var token = _tokenService.CreateToken(applicationIdentity);
                 return new AuthenticationResponseModel
                 {
-                    Message = "User Created successfully!",
+                    Message = "User created successfully",
                     IsSuccess = true,
                     Token = token
                 };
@@ -157,39 +134,37 @@ namespace Pertuk.Business.Services.Concrete
 
         public async Task<AuthenticationResponseModel> LoginAsync(LoginRequestModel loginRequestModel)
         {
-            if (loginRequestModel == null) throw new PertukApiException(BaseErrorResponseMessages.EnterUserDetail);
+            if (loginRequestModel == null) throw new PertukApiException(BaseErrorResponseMessages.User.EnterUserDetail);
 
             var getUserDetail = await _pertukUserManager.FindByNameAsync(loginRequestModel.Username);
-            if (getUserDetail == null) throw new PertukApiException(BaseErrorResponseMessages.UsernameNotFound);
+            if (getUserDetail == null) throw new PertukApiException(BaseErrorResponseMessages.User.UserNotFound);
 
-            CheckUserBan(getUserDetail.Id);
-            CheckUserDeleted(getUserDetail.Id);
+            _pertukUserManager.CheckUserBanAndDeletion(getUserDetail.Id);
 
             var checkUserPassword = await _pertukUserManager.CheckPasswordAsync(getUserDetail, loginRequestModel.Password);
-            if (!checkUserPassword) throw new PertukApiException(BaseErrorResponseMessages.InvalidPassword);
+            if (!checkUserPassword) throw new PertukApiException(BaseErrorResponseMessages.Password.Invalid);
 
             var token = _tokenService.CreateToken(getUserDetail);
 
             return new AuthenticationResponseModel
             {
                 IsSuccess = true,
-                Token = token
+                Token = token,
+                Message = "User successfully logged in!"
             };
         }
 
-        #endregion
-
         public async Task<AuthenticationResponseModel> ConfirmEmailAsync(ConfirmEmailRequestModel confirmEmailRequest)
         {
-            if (confirmEmailRequest == null) throw new PertukApiException("Fill detail");
+            if (confirmEmailRequest == null) throw new PertukApiException(BaseErrorResponseMessages.Defaults.EnterDetail);
 
-            if (string.IsNullOrEmpty(confirmEmailRequest.DigitCode) && string.IsNullOrWhiteSpace(confirmEmailRequest.DigitCode)) throw new PertukApiException(BaseErrorResponseMessages.InvalidDigitCode);
+            if (string.IsNullOrEmpty(confirmEmailRequest.DigitCode) && string.IsNullOrWhiteSpace(confirmEmailRequest.DigitCode)) throw new PertukApiException(BaseErrorResponseMessages.Defaults.InvalidDigitCode);
 
             var userDetail = await _pertukUserManager.FindByIdAsync(confirmEmailRequest.UserId);
-            if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.UserNotFound);
+            if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.User.UserNotFound);
 
             var isEmailConfirmed = await _pertukUserManager.IsEmailConfirmedAsync(userDetail);
-            if (isEmailConfirmed) throw new PertukApiException(BaseErrorResponseMessages.EmailAlreadyConfirmed);
+            if (isEmailConfirmed) throw new PertukApiException(BaseErrorResponseMessages.Email.EmailAlreadyConfirmed);
 
             var confirmEmailResult = await _pertukUserManager.ConfirmEmailWithDigitCodeAsync(userDetail, confirmEmailRequest.DigitCode);
 
@@ -198,7 +173,7 @@ namespace Pertuk.Business.Services.Concrete
                 return new AuthenticationResponseModel
                 {
                     IsSuccess = true,
-                    Message = BaseErrorResponseMessages.EmailConfirmed
+                    Message = "Email successfully confirmed!"
                 };
             }
 
@@ -209,14 +184,14 @@ namespace Pertuk.Business.Services.Concrete
         {
             var userDetail = await _pertukUserManager.FindByIdAsync(userId);
 
-            if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.UserNotFound);
+            if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.User.UserNotFound);
 
             await GenerateAndSendEmailConfirmationLink(userDetail);
 
             return new AuthenticationResponseModel
             {
                 IsSuccess = true,
-                Message = BaseErrorResponseMessages.ConfirmationCodeSentSuccessfully
+                Message = "Mail successfully sent to your Email address, Please check your Email inbox!"
             };
         }
 
@@ -224,56 +199,36 @@ namespace Pertuk.Business.Services.Concrete
         {
             var userDetail = await _pertukUserManager.FindByEmailAsync(forgotPasswordRequest.Email);
 
-            if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.UserNotFound);
+            if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.User.UserNotFound);
 
             await GenerateAndSendResetPasswordLink(userDetail);
 
             return new AuthenticationResponseModel
             {
                 IsSuccess = true,
-                Message = BaseErrorResponseMessages.ConfirmationCodeSentSuccessfully
+                Message = "Mail successfully sent to your Email address, Please check your Email inbox!"
             };
         }
 
         public async Task<AuthenticationResponseModel> ResetPassword(ResetPasswordRequestModel resetPasswordRequest)
         {
-            if (string.IsNullOrEmpty(resetPasswordRequest.Email) && string.IsNullOrWhiteSpace(resetPasswordRequest.Email) || string.IsNullOrEmpty(resetPasswordRequest.Token) && string.IsNullOrWhiteSpace(resetPasswordRequest.Token))
-                return new AuthenticationResponseModel
-                {
-                    IsSuccess = false,
-                    Message = "Invalid URL!"
-                };
+            if (string.IsNullOrEmpty(resetPasswordRequest.Email) && string.IsNullOrWhiteSpace(resetPasswordRequest.Email) || string.IsNullOrEmpty(resetPasswordRequest.DigitCode) && string.IsNullOrWhiteSpace(resetPasswordRequest.DigitCode)) throw new PertukApiException(BaseErrorResponseMessages.Defaults.InvalidDetails);
 
             var userDetail = await _pertukUserManager.FindByEmailAsync(resetPasswordRequest.Email);
-            if (userDetail == null)
-                return new AuthenticationResponseModel
-                {
-                    IsSuccess = false,
-                    Message = $"User with : {resetPasswordRequest.Email} not found!"
-                };
+            if (userDetail == null) throw new PertukApiException(BaseErrorResponseMessages.User.UserNotFound);
 
-            var tokenFromWebDecoded = WebEncoders.Base64UrlDecode(resetPasswordRequest.Token);
-            var validToken = Encoding.UTF8.GetString(tokenFromWebDecoded);
-
-            var resetPasswordResult = await _pertukUserManager.ResetPasswordAsync(userDetail, validToken, resetPasswordRequest.NewPassword);
+            var resetPasswordResult = await _pertukUserManager.ResetPasswordWithDigitCodeAsync(userDetail, resetPasswordRequest.DigitCode, resetPasswordRequest.NewPassword);
 
             if (resetPasswordResult.Succeeded)
             {
                 return new AuthenticationResponseModel
                 {
                     IsSuccess = true,
-                    Message = "Reset password successful!"
+                    Message = "Password successfully changed"
                 };
             }
-            else
-            {
-                return new AuthenticationResponseModel
-                {
-                    IsSuccess = false,
-                    Message = "Error while reseting your password!",
-                    Errors = resetPasswordResult.Errors.Select(x => x.Description)
-                };
-            }
+
+            throw new PertukApiException();
         }
 
         #region Private Functions
@@ -292,67 +247,22 @@ namespace Pertuk.Business.Services.Concrete
             await _emailSender.SendResetPassword(resetPasswordDigitCode, userDetail.Email, userDetail.Fullname);
         }
 
-        private async Task CheckUserDetail(string email, string username)
-        {
-            var isEmailExist = await _pertukUserManager.FindByEmailAsync(email) != null;
-            if (isEmailExist) throw new PertukApiException(BaseErrorResponseMessages.EmailExist);
-
-            var isUsernameExist = await _pertukUserManager.FindByNameAsync(username) != null;
-            if (isUsernameExist) throw new PertukApiException(BaseErrorResponseMessages.UsernameExist);
-        }
-
         private async Task CheckAndVerifyUserDetailForRegistering(string email, string username)
         {
             var isEmailExist = await _pertukUserManager.FindByEmailAsync(email);
             if (isEmailExist != null)
             {
-                CheckUserBan(isEmailExist.Id);
-                CheckUserDeleted(isEmailExist.Id);
-                throw new PertukApiException(BaseErrorResponseMessages.EmailExist);
+                _pertukUserManager.CheckUserBanAndDeletion(isEmailExist.Id);
+                throw new PertukApiException(BaseErrorResponseMessages.Email.EmailExist);
             }
 
             var isUsernameExist = await _pertukUserManager.FindByNameAsync(username);
             if (isUsernameExist != null)
             {
-                CheckUserBan(isUsernameExist.Id);
-                CheckUserDeleted(isUsernameExist.Id);
-                throw new PertukApiException(BaseErrorResponseMessages.UsernameExist);
+                _pertukUserManager.CheckUserBanAndDeletion(isUsernameExist.Id);
+                throw new PertukApiException(BaseErrorResponseMessages.Username.UsernameExist);
             }
         }
-
-        private void CheckUserDeleted(string userId)
-        {
-            var deletedUser = _deletedUsersRepository.GetById(userId);
-            if (deletedUser != null && deletedUser.IsActive == true)
-            {
-                throw new PertukApiException($"This user was deleted on : {deletedUser.DeletedAt.ToShortDateString()}");
-            }
-        }
-
-        private void CheckUserBan(string userId)
-        {
-            var bannedUser = _bannedUsersRepository.GetById(userId);
-            if (bannedUser != null && bannedUser.IsActive == true)
-            {
-                throw new PertukApiException($"This user was banned on : {bannedUser.BannedAt.ToShortDateString()}");
-            }
-        }
-
-        //private async Task<string> UploadImage(IFormFile formFile)
-        //{
-        //    var defaultPath = MediaOptions.StorageZoneName + MediaOptions.PostsDirectoryPath;
-
-        //    var destination = Path.Combine(defaultPath, Guid.NewGuid().ToString());
-
-        //    var newDestination = destination + ".jpg";
-
-        //    using (Stream reader = formFile.OpenReadStream())
-        //    {
-        //        await _bunnyCDNService.UploadAsync(reader, newDestination);
-        //    }
-
-        //    return newDestination;
-        //}
 
         #endregion
     }
