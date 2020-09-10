@@ -16,8 +16,6 @@ namespace Pertuk.Business.Validators.Auth
 
             RuleFor(x => x.Username).Username();
 
-            RuleFor(x => x.Grade).Grade();
-
             RuleFor(x => x.Department).Department();
         }
     }

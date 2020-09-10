@@ -1,0 +1,23 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+@if (Context.Session.GetString("userToken") == null)
+{
+    <h1>User not logged in</h1>
+}
+else
+{
+    <h1>User Logged In</h1>
+}
+
+@* User Id 28993c3c-c85d-409e-b522-324e413a26fb *@
+
+<form asp-action="SendConfirmation" asp-controller="Auth" method="post">
+    <input type="submit" name="Button" value="ClickForSubmit" />
+</form>

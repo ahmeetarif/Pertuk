@@ -76,7 +76,11 @@ namespace Pertuk.Business.Services.Concrete
             if (result == EntityState.Added)
             {
                 try { await GenerateAndSendEmailConfirmationLink(applicationIdentity); } catch (Exception) { throw new PertukApiException(); };
-                var token = _tokenService.CreateToken(applicationIdentity);
+
+                applicationIdentity.StudentUsers = studentIdentity;
+
+                var token = _tokenService.CreateStudentUserToken(applicationIdentity);
+
                 return new AuthenticationResponseModel
                 {
                     Message = "User created successfully!",
@@ -120,7 +124,11 @@ namespace Pertuk.Business.Services.Concrete
             if (result == EntityState.Added)
             {
                 try { await GenerateAndSendEmailConfirmationLink(applicationIdentity); } catch (Exception) { throw new PertukApiException(); };
-                var token = _tokenService.CreateToken(applicationIdentity);
+
+                applicationIdentity.TeacherUsers = teacherIdentity;
+
+                var token = _tokenService.CreateTeacherUserToken(applicationIdentity);
+
                 return new AuthenticationResponseModel
                 {
                     Message = "User created successfully",
@@ -144,14 +152,33 @@ namespace Pertuk.Business.Services.Concrete
             var checkUserPassword = await _pertukUserManager.CheckPasswordAsync(getUserDetail, loginRequestModel.Password);
             if (!checkUserPassword) throw new PertukApiException(BaseErrorResponseMessages.Password.Invalid);
 
-            var token = _tokenService.CreateToken(getUserDetail);
+            var isUserStudent = FindStudentUserById(getUserDetail.Id);
 
-            return new AuthenticationResponseModel
+            if (isUserStudent)
             {
-                IsSuccess = true,
-                Token = token,
-                Message = "User successfully logged in!"
-            };
+                var studentUserToken = _tokenService.CreateStudentUserToken(getUserDetail);
+                return new AuthenticationResponseModel
+                {
+                    IsSuccess = true,
+                    Token = studentUserToken,
+                    Message = "User Logged In as Student"
+                };
+            }
+
+            var isUserTeacher = FindTeacherById(getUserDetail.Id);
+
+            if (isUserTeacher)
+            {
+                var teacherUserToken = _tokenService.CreateTeacherUserToken(getUserDetail);
+                return new AuthenticationResponseModel
+                {
+                    IsSuccess = true,
+                    Token = teacherUserToken,
+                    Message = "User Logged In as Teacher"
+                };
+            }
+
+            throw new PertukApiException();
         }
 
         public async Task<AuthenticationResponseModel> ConfirmEmailAsync(ConfirmEmailRequestModel confirmEmailRequest)
@@ -261,6 +288,44 @@ namespace Pertuk.Business.Services.Concrete
             {
                 _pertukUserManager.CheckUserBanAndDeletion(isUsernameExist.Id);
                 throw new PertukApiException(BaseErrorResponseMessages.Username.UsernameExist);
+            }
+        }
+
+        public bool FindStudentUserById(string userId)
+        {
+            try
+            {
+                var isExist = _studentUsersRepository.GetById(userId);
+                if (isExist != null)
+                {
+                    // Exist
+                    return true;
+                }
+                // Not Exist
+                return false;
+            }
+            catch (Exception)
+            {
+                throw new PertukApiException();
+            }
+        }
+
+        public bool FindTeacherById(string userId)
+        {
+            try
+            {
+                var isExist = _teacherUsersRepository.GetById(userId);
+                if (isExist != null)
+                {
+                    // Exist
+                    return true;
+                }
+                // Not Exist
+                return false;
+            }
+            catch (Exception)
+            {
+                throw new PertukApiException();
             }
         }
 

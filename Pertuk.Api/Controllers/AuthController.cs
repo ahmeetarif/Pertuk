@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Dto.Requests.Auth;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Pertuk.Api.Controllers
         }
 
         [HttpPost("RegisterTeacher")]
-        public async Task<IActionResult> RegisterTeacher([FromBody] TeacherUserRegisterRequestModel teacherUserModel)
+        public async Task<IActionResult> RegisterTeacher([FromForm] TeacherUserRegisterRequestModel teacherUserModel)
         {
             var response = await _authService.RegisterTeacherAsync(teacherUserModel);
             return Ok(response);
@@ -55,6 +56,7 @@ namespace Pertuk.Api.Controllers
         #region Email Confirmation
 
         [HttpPost("ConfirmEmail")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "SendEmailConfirmationPolicy")]
         public async Task<IActionResult> ConfirmEmail(ConfirmEmailRequestModel confirmEmailRequestModel)
         {
             var response = await _authService.ConfirmEmailAsync(confirmEmailRequestModel);
@@ -63,6 +65,7 @@ namespace Pertuk.Api.Controllers
         }
 
         [HttpPost("SendEmailConfirmation")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "SendEmailConfirmationPolicy")]
         public async Task<IActionResult> SendEmailConfirmation([FromBody] string userId)
         {
             var response = await _authService.SendEmailConfirmation(userId);

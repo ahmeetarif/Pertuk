@@ -50,6 +50,8 @@ namespace Pertuk.DataAccess
 
                 entity.Property(e => e.UpdatedAt).HasColumnName("Updated_at");
 
+                entity.Property(e => e.ProfileImagePath).IsRequired();
+
                 entity.Property(e => e.UserName).HasMaxLength(256);
             });
 

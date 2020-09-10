@@ -4,6 +4,7 @@ namespace Pertuk.Business.Services.Abstract
 {
     public interface ITokenService
     {
-        string CreateToken(ApplicationUser userInfo);
+        string CreateStudentUserToken(ApplicationUser studentUsersDto);
+        string CreateTeacherUserToken(ApplicationUser teacherUsers);
     }
 }

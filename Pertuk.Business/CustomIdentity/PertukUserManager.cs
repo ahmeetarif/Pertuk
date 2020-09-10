@@ -1,21 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Pertuk.Business.BunnyCDN;
 using Pertuk.Business.CustomIdentity.Providers;
 using Pertuk.Business.CustomIdentity.Statics;
-using Pertuk.Business.Options;
 using Pertuk.Common.Exceptions;
 using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.Entities.Models;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.CustomIdentity

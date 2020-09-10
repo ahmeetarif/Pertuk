@@ -46,13 +46,6 @@ namespace Pertuk.Business.Extensions.ValidationExt
             return options;
         }
 
-        public static IRuleBuilder<T, int> Grade<T>(this IRuleBuilder<T, int> ruleBuilder)
-        {
-            var options = ruleBuilder
-                .Empty();
-            return options;
-        }
-
         public static IRuleBuilder<T, string> Department<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
             var options = ruleBuilder

@@ -12,12 +12,9 @@ using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Business.Services.Concrete;
 using Pertuk.Business.Validators.Auth;
-using Pertuk.Common.Exceptions;
-using Pertuk.Core.DataAccess.BaseRepository;
 using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.DataAccess.Repositories.Concrete;
 using Pertuk.Dto.Requests.Auth;
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -39,6 +36,11 @@ namespace Pertuk.Business.Installers
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.SuppressModelStateInvalidFilter = true;
+            });
+
+            services.AddAuthorization(configure =>
+            {
+                configure.AddPolicy("SendEmailConfirmationPolicy", x => x.RequireAuthenticatedUser());
             });
 
             SwaggerConfiguration(services, configuration);
