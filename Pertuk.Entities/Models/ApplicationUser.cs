@@ -7,10 +7,11 @@ namespace Pertuk.Entities.Models
     public partial class ApplicationUser : IdentityUser
     {
         public string Fullname { get; set; }
-        public string Department { get; set; }
+        public string ProfileImagePath { get; set; }
+        public int Points { get; set; }
+        public int Score { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public string ProfileImagePath { get; set; }
 
         public virtual BannedUsers BannedUsers { get; set; }
         public virtual DeletedUsers DeletedUsers { get; set; }

@@ -15,8 +15,6 @@ namespace Pertuk.Business.Validators.Auth
             RuleFor(x => x.Password).Password();
 
             RuleFor(x => x.Username).Username();
-
-            RuleFor(x => x.Department).Department();
         }
     }
 }

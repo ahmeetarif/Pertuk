@@ -4,6 +4,7 @@ namespace Pertuk.Dto.Requests.Auth
 {
     public class StudentUserRegisterRequestModel : BaseRegisterDto
     {
-        public int Grade { get; set; }
+        public int? Grade { get; set; }
+        public string Department { get; set; }
     }
 }

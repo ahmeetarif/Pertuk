@@ -1,4 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.IIS.Core;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Pertuk.Business.CustomIdentity.Providers;
@@ -19,15 +22,21 @@ namespace Pertuk.Business.CustomIdentity
         private readonly DigitTokenProvider _digitTokenProvider;
         private readonly IBannedUsersRepository _bannedUsersRepository;
         private readonly IDeletedUsersRepository _deletedUsersRepository;
+        private readonly IStudentUsersRepository _studentUsersRepository;
+        private readonly ITeacherUsersRepository _teacherUsersRepository;
         public PertukUserManager(IUserStore<ApplicationUser> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<ApplicationUser> passwordHasher, IEnumerable<IUserValidator<ApplicationUser>> userValidators, IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<ApplicationUser>> logger,
             DigitTokenProvider digitTokenProvider,
             IBannedUsersRepository bannedUsersRepository,
-            IDeletedUsersRepository deletedUsersRepository)
+            IDeletedUsersRepository deletedUsersRepository,
+            IStudentUsersRepository studentUsersRepository,
+            ITeacherUsersRepository teacherUsersRepository)
             : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
         {
             _digitTokenProvider = digitTokenProvider;
             _bannedUsersRepository = bannedUsersRepository;
             _deletedUsersRepository = deletedUsersRepository;
+            _studentUsersRepository = studentUsersRepository;
+            _teacherUsersRepository = teacherUsersRepository;
         }
 
         /// <summary>
@@ -112,6 +121,75 @@ namespace Pertuk.Business.CustomIdentity
             {
                 throw new PertukApiException();
             }
+        }
+
+        public virtual async Task<EntityState> CreateStudent(StudentUsers studentUsers)
+        {
+            await UpdateNormalizedEmailAsync(studentUsers.User);
+            await UpdateNormalizedUserNameAsync(studentUsers.User);
+
+            return _studentUsersRepository.AddUsersAndStudent(studentUsers);
+        }
+
+        public virtual async Task<EntityState> CreateTeacher(TeacherUsers teacherUsers)
+        {
+            await UpdateNormalizedEmailAsync(teacherUsers.User);
+            await UpdateNormalizedUserNameAsync(teacherUsers.User);
+
+            return _teacherUsersRepository.AddUsersAndTeacher(teacherUsers);
+        }
+
+        public virtual async Task<ApplicationUser> GetUserDetailByEmailAsync(string email)
+        {
+            var userDetail = await this.FindByEmailAsync(email);
+
+            if (userDetail == null)
+            {
+                return null;
+            }
+
+            var isUserStudent = _studentUsersRepository.GetById(userDetail.Id);
+            if (isUserStudent != null)
+            {
+                // Student
+                userDetail.StudentUsers = isUserStudent;
+                return userDetail;
+            }
+
+            var isUserTeacher = _teacherUsersRepository.GetById(userDetail.Id);
+            if (isUserTeacher != null)
+            {
+                // Teacher
+                userDetail.TeacherUsers = isUserTeacher;
+                return userDetail;
+            }
+
+            return userDetail;
+        }
+
+        public virtual async Task<ApplicationUser> GetUserDetailByNameAsync(string username)
+        {
+            username = KeyNormalizer.NormalizeName(username);
+
+            var userDetail = await Store.FindByNameAsync(username, CancellationToken);
+
+            var isUserStudent = _studentUsersRepository.GetById(userDetail.Id);
+            if (isUserStudent != null)
+            {
+                // Student
+                userDetail.StudentUsers = isUserStudent;
+                return userDetail;
+            }
+
+            var isUserTeacher = _teacherUsersRepository.GetById(userDetail.Id);
+            if (isUserTeacher != null)
+            {
+                // Teacher
+                userDetail.TeacherUsers = isUserTeacher;
+                return userDetail;
+            }
+
+            throw new PertukApiException();
         }
 
         #region Private Functions

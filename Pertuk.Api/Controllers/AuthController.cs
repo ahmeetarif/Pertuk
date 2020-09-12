@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Asn1.Mozilla;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Dto.Requests.Auth;
 using System.Threading.Tasks;
@@ -81,6 +82,18 @@ namespace Pertuk.Api.Controllers
         public async Task<IActionResult> SendResetPassword([FromBody] ForgotPasswordRequestModel forgotPasswordRequestModel)
         {
             var response = await _authService.SendResetPasswordLink(forgotPasswordRequestModel);
+
+            return Ok(response);
+        }
+
+        #endregion
+
+        #region Facebook Auth
+
+        [HttpPost("FacebookAuthentication")]
+        public async Task<IActionResult> FacebookAuthentication(FacebookAuthRequestModel facebookAuthRequestModel)
+        {
+            var response = await _authService.FacebookAuthentication(facebookAuthRequestModel);
 
             return Ok(response);
         }

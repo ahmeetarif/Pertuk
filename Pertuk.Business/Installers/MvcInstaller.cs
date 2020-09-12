@@ -15,6 +15,7 @@ using Pertuk.Business.Validators.Auth;
 using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.DataAccess.Repositories.Concrete;
 using Pertuk.Dto.Requests.Auth;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -107,7 +108,7 @@ namespace Pertuk.Business.Installers
 
                 services.AddSingleton(jwtOption);
 
-                options.TokenValidationParameters = new TokenValidationParameters
+                var tokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -118,6 +119,10 @@ namespace Pertuk.Business.Installers
                     ValidateIssuerSigningKey = true,
                     ValidateLifetime = true
                 };
+
+                services.AddSingleton(tokenValidationParameters);
+
+                options.TokenValidationParameters = tokenValidationParameters;
             });
         }
 

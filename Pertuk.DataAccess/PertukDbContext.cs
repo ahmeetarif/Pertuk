@@ -30,31 +30,6 @@ namespace Pertuk.DataAccess
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<ApplicationUser>(entity =>
-            {
-                entity.Property(e => e.CreatedAt).HasColumnName("Created_at");
-
-                entity.Property(e => e.Department).HasMaxLength(80);
-
-                entity.Property(e => e.Email).HasMaxLength(256);
-
-                entity.Property(e => e.Fullname)
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
-
-                entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
-
-                entity.Property(e => e.UpdatedAt).HasColumnName("Updated_at");
-
-                entity.Property(e => e.ProfileImagePath).IsRequired();
-
-                entity.Property(e => e.UserName).HasMaxLength(256);
-            });
-
             modelBuilder.Entity<Answers>(entity =>
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
@@ -83,6 +58,29 @@ namespace Pertuk.DataAccess
                     .WithMany(p => p.Answers)
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.Property(e => e.CreatedAt).HasColumnName("Created_at");
+
+                entity.Property(e => e.Email).HasMaxLength(256);
+
+                entity.Property(e => e.Fullname)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
+
+                entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
+
+                entity.Property(e => e.Points).HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.ProfileImagePath).IsRequired();
+
+                entity.Property(e => e.UpdatedAt).HasColumnName("Updated_at");
+
+                entity.Property(e => e.UserName).HasMaxLength(256);
             });
 
             modelBuilder.Entity<BannedUsers>(entity =>
@@ -118,6 +116,11 @@ namespace Pertuk.DataAccess
                     .ValueGeneratedNever();
 
                 entity.Property(e => e.DeletedAt).HasColumnName("Deleted_at");
+
+                entity.Property(e => e.IsActive)
+                    .IsRequired()
+                    .HasColumnName("Is_Active")
+                    .HasDefaultValueSql("((1))");
 
                 entity.Property(e => e.Reason).HasMaxLength(450);
 
@@ -187,6 +190,10 @@ namespace Pertuk.DataAccess
 
                 entity.Property(e => e.UserId).HasColumnName("User_Id");
 
+                entity.Property(e => e.Department).HasMaxLength(50);
+
+                entity.Property(e => e.Grade).HasDefaultValueSql("((1))");
+
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.StudentUsers)
                     .HasForeignKey<StudentUsers>(d => d.UserId)
@@ -199,12 +206,35 @@ namespace Pertuk.DataAccess
 
                 entity.Property(e => e.UserId).HasColumnName("User_Id");
 
+                entity.Property(e => e.AcademicOf)
+                    .HasColumnName("Academic_Of")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.DepartmentOf)
+                    .HasColumnName("Department_Of")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.ForStudent)
+                    .HasColumnName("For_Student")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.IsVerified).HasColumnName("Is_Verified");
+
+                entity.Property(e => e.Subject).HasMaxLength(50);
+
+                entity.Property(e => e.UniversityName)
+                    .HasColumnName("University_Name")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.YearsOfExperience).HasColumnName("Years_Of_Experience");
+
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.TeacherUsers)
                     .HasForeignKey<TeacherUsers>(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
+            base.OnModelCreating(modelBuilder);
             OnModelCreatingPartial(modelBuilder);
         }
 

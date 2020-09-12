@@ -6,6 +6,7 @@ namespace Pertuk.Entities.Models
     {
         public string UserId { get; set; }
         public int? Grade { get; set; }
+        public string Department { get; set; }
 
         public virtual ApplicationUser User { get; set; }
     }

@@ -10,35 +10,44 @@ namespace Pertuk.DataAccess.Repositories.Concrete
 {
     public class StudentUsersRepository : BaseRepository<StudentUsers, string>, IStudentUsersRepository
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        public StudentUsersRepository(UserManager<ApplicationUser> userManager, PertukDbContext pertukDbContext) : base(pertukDbContext)
+        public StudentUsersRepository(PertukDbContext pertukDbContext) : base(pertukDbContext)
         {
-            _userManager = userManager;
         }
 
-        public override async Task<EntityState> Add(StudentUsers entity)
+        public EntityState AddUsersAndStudent(StudentUsers entity)
         {
             using (var transaction = _pertukDbContext.BeginTransaction())
             {
                 try
                 {
-                    var result = await _userManager.CreateAsync(entity.User);
-                    if (result.Succeeded)
-                    {
-                        _pertukDbContext.StudentUsers.Add(entity);
-                        _pertukDbContext.Commit();
-                        return EntityState.Added;
-                    }
-                    else
-                    {
-                        return EntityState.Unchanged;
-                    }
+                    _pertukDbContext.Users.Add(entity.User);
+                    _pertukDbContext.StudentUsers.Add(entity);
+                    _pertukDbContext.Commit();
+                    return EntityState.Added;
                 }
                 catch (Exception)
                 {
                     _pertukDbContext.Rollback();
                     return EntityState.Unchanged;
                 }
+            }
+        }
+
+        public EntityState AddStudent(StudentUsers studentUsers)
+        {
+            try
+            {
+                _pertukDbContext.StudentUsers.Add(new StudentUsers
+                {
+                    Grade = studentUsers.Grade,
+                    UserId = studentUsers.UserId
+                });
+                _pertukDbContext.SaveChanges();
+                return EntityState.Added;
+            }
+            catch (Exception)
+            {
+                return EntityState.Unchanged;
             }
         }
     }

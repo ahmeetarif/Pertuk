@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Routing.Tree;
 using Pertuk.Common.Infrastructure;
 using System.Resources;
 using System.Text.RegularExpressions;
@@ -30,9 +31,7 @@ namespace Pertuk.Business.Extensions.ValidationExt
         public static IRuleBuilder<T, string> Username<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
             var options = ruleBuilder
-                .NotEmpty().WithMessage(BaseModelValidationMessages.Username.Empty)
                 .Must(IsUsernameValid).WithMessage(BaseModelValidationMessages.Username.Valid)
-                .MinimumLength(BaseModelLength.MinUsername).WithMessage(BaseModelValidationMessages.Username.Min)
                 .MaximumLength(BaseModelLength.MaxUsername).WithMessage(BaseModelValidationMessages.Username.Max);
             return options;
         }
@@ -49,8 +48,13 @@ namespace Pertuk.Business.Extensions.ValidationExt
         public static IRuleBuilder<T, string> Department<T>(this IRuleBuilder<T, string> ruleBuilder)
         {
             var options = ruleBuilder
-                .Empty()
                 .MaximumLength(BaseModelLength.MaxDepartment).WithMessage(BaseModelValidationMessages.Department.Max);
+            return options;
+        }
+
+        public static IRuleBuilder<T, string> Grade<T>(this IRuleBuilder<T, string> ruleBuilder)
+        {
+            var options = ruleBuilder;
             return options;
         }
 
@@ -70,6 +74,12 @@ namespace Pertuk.Business.Extensions.ValidationExt
 
         private static bool IsUsernameValid(string username)
         {
+            return true;
+            if (string.IsNullOrEmpty(username))
+            {
+                return true;
+            }
+
             var allowedUsernameCharacters = new Regex("^(?=.{6,50}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$");
 
             if (allowedUsernameCharacters.IsMatch(username))
@@ -77,7 +87,6 @@ namespace Pertuk.Business.Extensions.ValidationExt
                 return true;
             }
             return false;
-
         }
 
         private static bool IsValidName(string name)
