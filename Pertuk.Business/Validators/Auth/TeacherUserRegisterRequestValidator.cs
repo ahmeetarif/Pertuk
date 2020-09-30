@@ -9,11 +9,8 @@ namespace Pertuk.Business.Validators.Auth
         public TeacherUserRegisterRequestValidator()
         {
             RuleFor(x => x.Fullname).Fullname();
-
             RuleFor(x => x.Email).Email();
-
             RuleFor(x => x.Username).Username();
-
             RuleFor(x => x.Password).Password();
         }
     }

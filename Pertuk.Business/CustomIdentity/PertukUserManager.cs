@@ -173,6 +173,8 @@ namespace Pertuk.Business.CustomIdentity
 
             var userDetail = await Store.FindByNameAsync(username, CancellationToken);
 
+            if (userDetail == null) throw new PertukApiException("User not found!");
+
             var isUserStudent = _studentUsersRepository.GetById(userDetail.Id);
             if (isUserStudent != null)
             {
@@ -190,6 +192,13 @@ namespace Pertuk.Business.CustomIdentity
             }
 
             throw new PertukApiException();
+        }
+
+        public virtual async Task<IdentityResult> UpdatePertukUser(ApplicationUser userDetail)
+        {
+            ThrowIfDisposed();
+
+            return null;
         }
 
         #region Private Functions

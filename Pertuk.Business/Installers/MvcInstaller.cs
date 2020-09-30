@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FluentValidation.AspNetCore;
+﻿using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -11,11 +10,9 @@ using Pertuk.Business.Filters;
 using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Business.Services.Concrete;
-using Pertuk.Business.Validators.Auth;
+using Pertuk.Common.MiddleWare;
 using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.DataAccess.Repositories.Concrete;
-using Pertuk.Dto.Requests.Auth;
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -97,31 +94,31 @@ namespace Pertuk.Business.Installers
 
         private void JwtConfiguration(IServiceCollection services, IConfiguration configuration)
         {
+            var jwtOption = new JwtOption();
+            configuration.GetSection(nameof(JwtOption)).Bind(jwtOption);
+            services.AddSingleton(jwtOption);
+
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = jwtOption.Issuer,
+                ValidAudience = jwtOption.Audience,
+                RequireExpirationTime = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOption.Secret)),
+                ValidateIssuerSigningKey = true,
+                ValidateLifetime = true
+            };
+
+            services.AddSingleton(tokenValidationParameters);
+
             services.AddAuthentication(auth =>
             {
                 auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 auth.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                var jwtOption = new JwtOption();
-                configuration.GetSection(nameof(JwtOption)).Bind(jwtOption);
-
-                services.AddSingleton(jwtOption);
-
-                var tokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidIssuer = jwtOption.Issuer,
-                    ValidAudience = jwtOption.Audience,
-                    RequireExpirationTime = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOption.Secret)),
-                    ValidateIssuerSigningKey = true,
-                    ValidateLifetime = true
-                };
-
-                services.AddSingleton(tokenValidationParameters);
-
+                options.SaveToken = true;
                 options.TokenValidationParameters = tokenValidationParameters;
             });
         }
@@ -133,28 +130,27 @@ namespace Pertuk.Business.Installers
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUploadImageService, UploadImageService>();
+            services.AddScoped<IPertukRoleService, PertukRoleService>();
+            services.AddScoped<IQuestionsService, QuestionsService>();
 
             services.AddScoped<IStudentUsersRepository, StudentUsersRepository>();
             services.AddScoped<ITeacherUsersRepository, TeacherUsersRepository>();
             services.AddScoped<IBannedUsersRepository, BannedUsersRepository>();
             services.AddScoped<IDeletedUsersRepository, DeletedUsersRepository>();
+            services.AddScoped<IQuestionsRepository, QuestionsRepository>();
 
             services.AddScoped<BunnyCDNService>();
-
+            services.AddScoped<CurrentUser>();
             #endregion
 
             #region Transients
 
-            services.AddTransient<IValidator<LoginRequestModel>, LoginRequestValidator>();
-            services.AddTransient<IValidator<ResetPasswordRequestModel>, ResetPasswordValidator>();
-            services.AddTransient<IValidator<ConfirmEmailRequestModel>, ConfirmEmailValidator>();
-            services.AddTransient<IValidator<ForgotPasswordRequestModel>, ForgotPasswordValidator>();
-            services.AddTransient<IValidator<StudentUserRegisterRequestModel>, StudentUserRegisterRequestValidator>();
-            services.AddTransient<IValidator<TeacherUserRegisterRequestModel>, TeacherUserRegisterRequestValidator>();
-
             services.AddTransient<IEmailSender, EmailSender>();
 
             #endregion
+
+            services.AddHttpContextAccessor();
+
         }
 
         private void OptionsConfiguration(IServiceCollection services, IConfiguration configuration)

@@ -3,7 +3,6 @@
     public class PertukExceptionServiceErrorResponse
     {
         private string _message = "Something went wrong! Please try again later.";
-        public int StatusCode { get; set; } = 500;
         public string Message
         {
             get

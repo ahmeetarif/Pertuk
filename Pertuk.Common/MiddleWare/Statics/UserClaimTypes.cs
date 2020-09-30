@@ -24,5 +24,6 @@
         public static string Subject = "Subject";
         public static string YearsOfExperience = "YearsOfExperience";
         public static string IsVerified = "IsVerified";
+        public static string Certficates = "Certficates";
     }
 }

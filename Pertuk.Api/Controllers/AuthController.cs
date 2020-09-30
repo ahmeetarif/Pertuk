@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Org.BouncyCastle.Asn1.Mozilla;
+using Microsoft.Extensions.DependencyInjection;
+using Pertuk.Api.Contracts;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Dto.Requests.Auth;
 using System.Threading.Tasks;
@@ -9,34 +10,39 @@ using System.Threading.Tasks;
 namespace Pertuk.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
     public class AuthController : Controller
     {
-        #region Private Variables
-
         private readonly IAuthService _authService;
-
-        #endregion
-
         public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
 
+        #region Register Student and Teacher Methods
+
+        //[HttpPost(ApiRoutes.Auth.RegisterStudent)]
+        //public async Task<IActionResult> RegisterStudent([FromForm] StudentUserRegisterRequestModel studentUserModel)
+        //{
+        //    var response = await _authService.RegisterStudentAsync(studentUserModel);
+
+        //    return Ok(response);
+        //}
+
+        //[HttpPost(ApiRoutes.Auth.RegisterTeacher)]
+        //public async Task<IActionResult> RegisterTeacher([FromForm] TeacherUserRegisterRequestModel teacherUserModel)
+        //{
+        //    var response = await _authService.RegisterTeacherAsync(teacherUserModel);
+        //    return Ok(response);
+        //}
+
+        #endregion
+
         #region Register
 
-        [HttpPost("RegisterStudent")]
-        public async Task<IActionResult> RegisterStudent([FromForm] StudentUserRegisterRequestModel studentUserModel)
+        [HttpPost(ApiRoutes.Auth.Register)]
+        public async Task<IActionResult> Register([FromForm] RegisterRequestModel registerRequestModel)
         {
-            var response = await _authService.RegisterStudentAsync(studentUserModel);
-
-            return Ok(response);
-        }
-
-        [HttpPost("RegisterTeacher")]
-        public async Task<IActionResult> RegisterTeacher([FromForm] TeacherUserRegisterRequestModel teacherUserModel)
-        {
-            var response = await _authService.RegisterTeacherAsync(teacherUserModel);
+            var response = await _authService.RegisterAsync(registerRequestModel);
             return Ok(response);
         }
 
@@ -44,8 +50,8 @@ namespace Pertuk.Api.Controllers
 
         #region Login
 
-        [HttpPost("LoginUser")]
-        public async Task<IActionResult> LoginUser([FromBody] LoginRequestModel loginRequest)
+        [HttpPost(ApiRoutes.Auth.Login)]
+        public async Task<IActionResult> Login([FromBody] LoginRequestModel loginRequest)
         {
             var response = await _authService.LoginAsync(loginRequest);
 
@@ -56,7 +62,7 @@ namespace Pertuk.Api.Controllers
 
         #region Email Confirmation
 
-        [HttpPost("ConfirmEmail")]
+        [HttpPost(ApiRoutes.Auth.ConfirmEmail)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "SendEmailConfirmationPolicy")]
         public async Task<IActionResult> ConfirmEmail(ConfirmEmailRequestModel confirmEmailRequestModel)
         {
@@ -65,7 +71,7 @@ namespace Pertuk.Api.Controllers
             return Ok(response);
         }
 
-        [HttpPost("SendEmailConfirmation")]
+        [HttpPost(ApiRoutes.Auth.SendEmailConfirmation)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "SendEmailConfirmationPolicy")]
         public async Task<IActionResult> SendEmailConfirmation([FromBody] string userId)
         {
@@ -78,7 +84,7 @@ namespace Pertuk.Api.Controllers
 
         #region Reset Password
 
-        [HttpPost("SendResetPassword")]
+        [HttpPost(ApiRoutes.Auth.SendResetPassword)]
         public async Task<IActionResult> SendResetPassword([FromBody] ForgotPasswordRequestModel forgotPasswordRequestModel)
         {
             var response = await _authService.SendResetPasswordLink(forgotPasswordRequestModel);
@@ -86,11 +92,18 @@ namespace Pertuk.Api.Controllers
             return Ok(response);
         }
 
+        [HttpPost(ApiRoutes.Auth.ResetPassword)]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestModel resetPasswordRequestModel)
+        {
+            var response = await _authService.ResetPassword(resetPasswordRequestModel);
+            return Ok(response);
+        }
+
         #endregion
 
         #region Facebook Auth
 
-        [HttpPost("FacebookAuthentication")]
+        [HttpPost(ApiRoutes.Auth.FacebookAuthentication)]
         public async Task<IActionResult> FacebookAuthentication(FacebookAuthRequestModel facebookAuthRequestModel)
         {
             var response = await _authService.FacebookAuthentication(facebookAuthRequestModel);

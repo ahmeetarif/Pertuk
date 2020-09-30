@@ -10,6 +10,7 @@ namespace Pertuk.Entities.Models
         public string AcademicOf { get; set; }
         public string DepartmentOf { get; set; }
         public string Subject { get; set; }
+        public string Certficates { get; set; }
         public int? YearsOfExperience { get; set; }
         public bool IsVerified { get; set; }
 

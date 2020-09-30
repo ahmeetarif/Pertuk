@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Pertuk.Core.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,8 +20,11 @@ namespace Pertuk.DataAccess.BaseRepository
 
         public virtual async Task<EntityState> Add(TEntity entity)
         {
-            var res = table.Add(entity);
-            return await Task.FromResult(res.State);
+            using (var trans = _pertukDbContext.BeginTransaction())
+            {
+                var res = table.Add(entity);
+                return await Task.FromResult(res.State);
+            }
         }
 
         public virtual IEnumerable<TEntity> GetAll()
@@ -36,15 +40,33 @@ namespace Pertuk.DataAccess.BaseRepository
 
         public virtual EntityState Remove(IdType id)
         {
-            TEntity entity = table.Find(id);
-            var result = table.Remove(entity);
-            return result.State;
+            using (var trans = _pertukDbContext.BeginTransaction())
+            {
+                TEntity entity = table.Find(id);
+                var result = table.Remove(entity);
+                return result.State;
+            }
         }
 
         public virtual EntityState Update(TEntity entity)
         {
-            var result = table.Update(entity);
-            return result.State;
+            using (var trans = _pertukDbContext.BeginTransaction())
+            {
+                var result = table.Update(entity);
+                return result.State;
+            }
+        }
+
+        public void SaveDbChanges()
+        {
+            try
+            {
+                _pertukDbContext.Commit();
+            }
+            catch (Exception)
+            {
+                _pertukDbContext.Rollback();
+            }
         }
     }
 }

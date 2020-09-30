@@ -1,10 +1,4 @@
 ﻿using BunnyCDN.Net.Storage;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Primitives;
-using Pertuk.Common.Infrastructure;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Pertuk.Business.BunnyCDN
 {

@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Pertuk.Core.Entities;
+using System;
 using System.Collections.Generic;
 
 namespace Pertuk.Entities.Models
 {
-    public partial class Questions
+    public partial class Questions : IEntity
     {
         public Questions()
         {
@@ -12,9 +13,13 @@ namespace Pertuk.Entities.Models
 
         public long Id { get; set; }
         public string UserId { get; set; }
-        public string Title { get; set; }
+        public string ForStudent { get; set; }
+        public string AcademicOf { get; set; }
+        public string DepartmentOf { get; set; }
+        public string Subject { get; set; }
+        public int ForGrade { get; set; }
         public string Description { get; set; }
-        public string ImageUrl { get; set; }
+        public string ImagePath { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public bool? IsActive { get; set; }

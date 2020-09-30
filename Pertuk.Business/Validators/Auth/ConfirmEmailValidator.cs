@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Pertuk.Business.Extensions.ValidationExt;
 using Pertuk.Dto.Requests.Auth;
 
 namespace Pertuk.Business.Validators.Auth
@@ -7,7 +8,7 @@ namespace Pertuk.Business.Validators.Auth
     {
         public ConfirmEmailValidator()
         {
-            RuleFor(x => x.UserId).NotEmpty().WithMessage("Invalid User");
+            RuleFor(x => x.UserId).UserId();
         }
     }
 }

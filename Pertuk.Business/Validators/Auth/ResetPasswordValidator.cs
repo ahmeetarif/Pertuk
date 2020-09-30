@@ -9,8 +9,8 @@ namespace Pertuk.Business.Validators.Auth
         public ResetPasswordValidator()
         {
             RuleFor(x => x.Email).Email();
-
             RuleFor(x => x.NewPassword).Password();
+            RuleFor(x => x.DigitCode).DigitCode();
         }
     }
 }

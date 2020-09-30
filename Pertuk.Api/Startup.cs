@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Pertuk.Api.Options;
 using Pertuk.Business.Extensions.InstallerExt;
 using Pertuk.Business.Options;
+using Pertuk.Common.MiddleWare.Handlers;
 
 namespace Pertuk.Api
 {
@@ -17,19 +19,22 @@ namespace Pertuk.Api
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.InstallServicesInAssembly(Configuration);
+
+            services.Configure<ApiOptions>(options => Configuration.GetSection(nameof(ApiOptions)).Bind(options));
+
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseResponseWrapper();
 
             app.UseRouting();
 

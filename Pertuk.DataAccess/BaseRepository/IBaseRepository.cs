@@ -12,5 +12,7 @@ namespace Pertuk.DataAccess.BaseRepository
         Task<EntityState> Add(TEntity entity);
         EntityState Remove(IdType id);
         EntityState Update(TEntity entity);
+
+        void SaveDbChanges();
     }
 }

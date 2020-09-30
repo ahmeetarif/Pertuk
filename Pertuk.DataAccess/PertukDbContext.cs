@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Configuration;
 using Pertuk.Entities.Models;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Pertuk.DataAccess
 {
@@ -20,6 +16,7 @@ namespace Pertuk.DataAccess
         {
 
         }
+        public virtual DbSet<AnswerReplies> AnswerReplies { get; set; }
         public virtual DbSet<Answers> Answers { get; set; }
         public virtual DbSet<BannedUsers> BannedUsers { get; set; }
         public virtual DbSet<DeletedQuestions> DeletedQuestions { get; set; }
@@ -27,18 +24,52 @@ namespace Pertuk.DataAccess
         public virtual DbSet<Questions> Questions { get; set; }
         public virtual DbSet<StudentUsers> StudentUsers { get; set; }
         public virtual DbSet<TeacherUsers> TeacherUsers { get; set; }
+        public virtual DbSet<RefreshToken> RefreshToken { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AnswerReplies>(entity =>
+            {
+                entity.Property(e => e.AnswerId).HasColumnName("Answer_Id");
+
+                entity.Property(e => e.CreatedAt).HasColumnName("Created_at");
+
+                entity.Property(e => e.Description).HasMaxLength(1000);
+
+                entity.Property(e => e.UpdatedAt).HasColumnName("Updated_at");
+
+                entity.Property(e => e.UserId)
+                    .IsRequired()
+                    .HasColumnName("User_Id")
+                    .HasMaxLength(450);
+
+                entity.HasOne(d => d.Answer)
+                    .WithMany(p => p.AnswerReplies)
+                    .HasForeignKey(d => d.AnswerId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_AnswerReplies_Answers_AnswerId");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.AnswerReplies)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_AnswerReplies_AspNetUsers_UserId");
+            });
+
             modelBuilder.Entity<Answers>(entity =>
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
 
                 entity.Property(e => e.CreatedAt).HasColumnName("Created_at");
 
-                entity.Property(e => e.Description)
+                entity.Property(e => e.Description).HasMaxLength(1000);
+
+                entity.Property(e => e.IsActive)
                     .IsRequired()
-                    .HasMaxLength(500);
+                    .HasColumnName("Is_Active")
+                    .HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.IsRight).HasColumnName("Is_Right");
 
                 entity.Property(e => e.QuestionId).HasColumnName("Question_Id");
 
@@ -60,15 +91,44 @@ namespace Pertuk.DataAccess
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(e => e.TokenId);
+
+                entity.Property(e => e.TokenId).HasColumnName("token_id");
+
+                entity.Property(e => e.ExpiryDate)
+                    .HasColumnName("expiry_date")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Token)
+                    .IsRequired()
+                    .HasColumnName("token")
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UserId)
+                    .IsRequired()
+                    .HasColumnName("user_id")
+                    .HasMaxLength(450);
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.RefreshToken)
+                    .HasForeignKey(d => d.UserId)
+                    .HasConstraintName("FK__RefreshTo__user___2EDAF651");
+            });
+
             modelBuilder.Entity<ApplicationUser>(entity =>
             {
                 entity.Property(e => e.CreatedAt).HasColumnName("Created_at");
 
                 entity.Property(e => e.Email).HasMaxLength(256);
 
-                entity.Property(e => e.Fullname)
-                    .IsRequired()
-                    .HasMaxLength(100);
+                entity.Property(e => e.Fullname).HasMaxLength(100);
+
+                entity.Property(e => e.IsFrom)
+                    .HasColumnName("Is_From")
+                    .HasMaxLength(50);
 
                 entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
 
@@ -156,18 +216,30 @@ namespace Pertuk.DataAccess
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
 
+                entity.Property(e => e.AcademicOf)
+                    .HasColumnName("Academic_Of")
+                    .HasMaxLength(100);
+
                 entity.Property(e => e.CreatedAt).HasColumnName("Created_at");
 
-                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.DepartmentOf)
+                    .HasColumnName("Department_Of")
+                    .HasMaxLength(100);
 
-                entity.Property(e => e.ImageUrl).IsRequired();
+                entity.Property(e => e.Description).HasMaxLength(1000);
+
+                entity.Property(e => e.ForGrade).HasColumnName("For_Grade");
+
+                entity.Property(e => e.ForStudent)
+                    .HasColumnName("For_Student")
+                    .HasMaxLength(100);
 
                 entity.Property(e => e.IsActive)
                     .IsRequired()
                     .HasColumnName("Is_Active")
                     .HasDefaultValueSql("((1))");
 
-                entity.Property(e => e.Title)
+                entity.Property(e => e.Subject)
                     .IsRequired()
                     .HasMaxLength(100);
 
@@ -190,7 +262,7 @@ namespace Pertuk.DataAccess
 
                 entity.Property(e => e.UserId).HasColumnName("User_Id");
 
-                entity.Property(e => e.Department).HasMaxLength(50);
+                entity.Property(e => e.Department).HasMaxLength(100);
 
                 entity.Property(e => e.Grade).HasDefaultValueSql("((1))");
 
@@ -208,23 +280,23 @@ namespace Pertuk.DataAccess
 
                 entity.Property(e => e.AcademicOf)
                     .HasColumnName("Academic_Of")
-                    .HasMaxLength(50);
+                    .HasMaxLength(150);
 
                 entity.Property(e => e.DepartmentOf)
                     .HasColumnName("Department_Of")
-                    .HasMaxLength(50);
+                    .HasMaxLength(150);
 
                 entity.Property(e => e.ForStudent)
                     .HasColumnName("For_Student")
-                    .HasMaxLength(50);
+                    .HasMaxLength(100);
 
                 entity.Property(e => e.IsVerified).HasColumnName("Is_Verified");
 
-                entity.Property(e => e.Subject).HasMaxLength(50);
+                entity.Property(e => e.Subject).HasMaxLength(100);
 
                 entity.Property(e => e.UniversityName)
                     .HasColumnName("University_Name")
-                    .HasMaxLength(50);
+                    .HasMaxLength(256);
 
                 entity.Property(e => e.YearsOfExperience).HasColumnName("Years_Of_Experience");
 

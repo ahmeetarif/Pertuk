@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Pertuk.Core.Entities;
+using System;
 
 namespace Pertuk.Entities.Models
 {
-    public partial class DeletedQuestions
+    public partial class DeletedQuestions : IEntity
     {
         public long QuestionId { get; set; }
         public string Reason { get; set; }

@@ -6,8 +6,9 @@ namespace Pertuk.Business.Services.Abstract
 {
     public interface IAuthService
     {
-        Task<AuthenticationResponseModel> RegisterStudentAsync(StudentUserRegisterRequestModel studentUser);
-        Task<AuthenticationResponseModel> RegisterTeacherAsync(TeacherUserRegisterRequestModel teacherUser);
+        //Task<AuthenticationResponseModel> RegisterStudentAsync(StudentUserRegisterRequestModel studentUser);
+        //Task<AuthenticationResponseModel> RegisterTeacherAsync(TeacherUserRegisterRequestModel teacherUser);
+        Task<AuthenticationResponseModel> RegisterAsync(RegisterRequestModel registerRequestModel);
         Task<AuthenticationResponseModel> LoginAsync(LoginRequestModel loginRequestModel);
         Task<AuthenticationResponseModel> SendEmailConfirmation(string userId);
         Task<AuthenticationResponseModel> ConfirmEmailAsync(ConfirmEmailRequestModel confirmEmailRequest);

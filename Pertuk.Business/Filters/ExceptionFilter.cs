@@ -22,6 +22,8 @@ namespace Pertuk.Business.Filters
                 errorResponse.Message = context.Exception.Message;
             }
 
+            context.HttpContext.Items.Add("exception", context.Exception);
+            context.HttpContext.Items.Add("exceptionMessage", errorResponse.Message.ToString());
             context.Result = new JsonResult(errorResponse);
         }
     }
