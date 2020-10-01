@@ -1,4 +1,4 @@
-﻿namespace Pertuk.Api.Contracts
+﻿namespace Pertuk.Contracts.V1
 {
     public static class ApiRoutes
     {
@@ -7,10 +7,6 @@
         public static class Auth
         {
             public const string Base = Version + "/auth";
-
-            //public const string RegisterStudent = Base + "/registerstudent";
-
-            //public const string RegisterTeacher = Base + "/registerteacher";
 
             public const string Register = Base + "/register";
 
@@ -27,6 +23,5 @@
             public const string FacebookAuthentication = Base + "/facebookauthentication";
 
         }
-
     }
 }

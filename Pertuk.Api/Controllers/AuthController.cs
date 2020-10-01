@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Pertuk.Api.Contracts;
 using Pertuk.Business.Services.Abstract;
+using Pertuk.Contracts.V1;
 using Pertuk.Dto.Requests.Auth;
 using System.Threading.Tasks;
 
