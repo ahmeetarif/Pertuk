@@ -13,7 +13,7 @@ namespace Pertuk.Business.Installers
     {
         public void InstallServices(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<PertukDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("MainConnectionString")));
+            services.AddDbContext<PertukDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("CenutaConnectionString")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {

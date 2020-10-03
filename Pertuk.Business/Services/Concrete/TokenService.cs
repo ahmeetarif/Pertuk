@@ -43,37 +43,17 @@ namespace Pertuk.Business.Services.Concrete
         {
             var userClaims = GenerateClaims(applicationUser, facebookPictureData);
 
-            applicationUser.RefreshToken.Add(GenerateRefreshToken());
-
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
 
             var token = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,
                 audience: _jwtOptions.Audience,
                 claims: userClaims,
-                expires: DateTime.Now.Add(_jwtOptions.TokenLifeTime),
                 signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 
             var tokenAsString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            var refreshToken = GenerateRefreshToken();
-
             return tokenAsString;
-        }
-
-        private RefreshToken GenerateRefreshToken()
-        {
-            RefreshToken refreshToken = new RefreshToken();
-
-            var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                refreshToken.Token = Convert.ToBase64String(randomNumber);
-            }
-            refreshToken.ExpiryDate = DateTime.Now.AddMonths(6);
-
-            return refreshToken;
         }
 
         #region Private Functions

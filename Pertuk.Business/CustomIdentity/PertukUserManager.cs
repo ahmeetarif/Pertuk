@@ -191,7 +191,7 @@ namespace Pertuk.Business.CustomIdentity
                 return userDetail;
             }
 
-            throw new PertukApiException();
+            return userDetail;
         }
 
         public virtual async Task<IdentityResult> UpdatePertukUser(ApplicationUser userDetail)

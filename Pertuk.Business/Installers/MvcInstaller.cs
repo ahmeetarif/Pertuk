@@ -104,7 +104,7 @@ namespace Pertuk.Business.Installers
                 ValidateAudience = true,
                 ValidIssuer = jwtOption.Issuer,
                 ValidAudience = jwtOption.Audience,
-                RequireExpirationTime = true,
+                RequireExpirationTime = false,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOption.Secret)),
                 ValidateIssuerSigningKey = true,
                 ValidateLifetime = true
@@ -142,7 +142,7 @@ namespace Pertuk.Business.Installers
             services.AddScoped<BunnyCDNService>();
             services.AddScoped<CurrentUser>();
             #endregion
-
+            
             #region Transients
 
             services.AddTransient<IEmailSender, EmailSender>();
