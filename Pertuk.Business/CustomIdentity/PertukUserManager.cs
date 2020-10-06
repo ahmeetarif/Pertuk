@@ -143,10 +143,7 @@ namespace Pertuk.Business.CustomIdentity
         {
             var userDetail = await this.FindByEmailAsync(email);
 
-            if (userDetail == null)
-            {
-                return null;
-            }
+            if (userDetail == null) throw new PertukApiException("User not found!");
 
             var isUserStudent = _studentUsersRepository.GetById(userDetail.Id);
             if (isUserStudent != null)

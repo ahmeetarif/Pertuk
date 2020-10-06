@@ -240,7 +240,7 @@ namespace Pertuk.Business.Services.Concrete
         {
             if (loginRequestModel == null) throw new PertukApiException("Please provide required information!");
 
-            var getUserDetail = await _pertukUserManager.GetUserDetailByNameAsync(loginRequestModel.Username);
+            var getUserDetail = await _pertukUserManager.GetUserDetailByEmailAsync(loginRequestModel.Email);
             if (getUserDetail == null) throw new PertukApiException("User not found!");
 
             _pertukUserManager.CheckUserBanAndDeletion(getUserDetail.Id);

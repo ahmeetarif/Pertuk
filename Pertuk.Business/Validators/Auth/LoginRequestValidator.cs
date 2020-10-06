@@ -8,7 +8,7 @@ namespace Pertuk.Business.Validators.Auth
     {
         public LoginRequestValidator()
         {
-            RuleFor(x => x.Username).Username();
+            RuleFor(x => x.Email).Email();
 
             RuleFor(x => x.Password).Password();
         }
