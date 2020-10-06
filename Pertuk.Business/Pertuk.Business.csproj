@@ -5,6 +5,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Security\**" />
+	  <EmbeddedResource Remove="Security\**" />
+	  <None Remove="Security\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="BunnyCDN.Net.Storage" Version="1.0.4" />
 		<PackageReference Include="FluentValidation.AspNetCore" Version="9.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.8" />
@@ -23,10 +29,6 @@
 		<ProjectReference Include="..\Pertuk.Common\Pertuk.Common.csproj" />
 		<ProjectReference Include="..\Pertuk.DataAccess\Pertuk.DataAccess.csproj" />
 		<ProjectReference Include="..\Pertuk.Dto\Pertuk.Dto.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Security\" />
 	</ItemGroup>
 
 </Project>

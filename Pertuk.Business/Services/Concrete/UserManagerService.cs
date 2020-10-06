@@ -21,19 +21,6 @@ namespace Pertuk.Business.Services.Concrete
             _pertukUserManager = pertukUserManager;
         }
 
-        public async Task SetPoints(int points)
-        {
-
-        }
-
-        public async Task UpdateUserDetail(ChangeUserDetailRequestModel changeUserDetailRequest)
-        {
-            if (changeUserDetailRequest == null) throw new PertukApiException("Please enter user detail!");
-
-
-
-        }
-
         public async Task<UserManagerResponseModel> ChangeEmailAddress(ChangeEmailRequestModel changeEmailRequest)
         {
             if (changeEmailRequest == null) throw new PertukApiException("Please Enter Email Details!");

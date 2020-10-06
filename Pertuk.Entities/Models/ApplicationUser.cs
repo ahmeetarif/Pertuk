@@ -13,6 +13,7 @@ namespace Pertuk.Entities.Models
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string IsFrom { get; set; }
+        public string RegisterFrom { get; set; }
 
         public virtual BannedUsers BannedUsers { get; set; }
         public virtual DeletedUsers DeletedUsers { get; set; }

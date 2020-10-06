@@ -85,7 +85,7 @@ namespace Pertuk.Common.MiddleWare.Handlers
                 JToken.Parse(s);
                 response = true;
             }
-            catch (JsonReaderException ex)
+            catch (JsonReaderException)
             {
                 response = false;
             }

@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Pertuk.Business.CustomIdentity;
 using Pertuk.Business.Extensions.EmailExt;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Common.Exceptions;
-using Pertuk.Common.Infrastructure;
 using Pertuk.Dto.Requests.Auth;
 using Pertuk.Dto.Responses.Auth;
 using Pertuk.Entities.Models;
@@ -156,7 +154,8 @@ namespace Pertuk.Business.Services.Concrete
                 UserName = registerRequestModel.Email.Substring(0, emailStartLocation),
                 Email = registerRequestModel.Email,
                 CreatedAt = DateTime.Now,
-                ProfileImagePath = profileImagePath
+                ProfileImagePath = profileImagePath,
+                RegisterFrom = "Pertuk"
             };
 
             var registerResult = await _pertukUserManager.CreateAsync(applicationIdentity, registerRequestModel.Password);
@@ -196,14 +195,17 @@ namespace Pertuk.Business.Services.Concrete
             // User not Exist Then Create new one!
             if (userDetail == null)
             {
+                var emailStartLocation = userInfo.Email.IndexOf('@', StringComparison.Ordinal);
+
                 var identity = new ApplicationUser
                 {
                     Id = Guid.NewGuid().ToString(),
                     Fullname = $"{userInfo.Firstname} {userInfo.Lastname}",
                     Email = userInfo.Email,
-                    UserName = userInfo.Email,
+                    UserName = userInfo.Email.Substring(0, emailStartLocation),
                     CreatedAt = DateTime.Now,
-                    ProfileImagePath = userInfo.FacebookPicture.FacebookPictureData.Url.OriginalString
+                    ProfileImagePath = userInfo.FacebookPicture.FacebookPictureData.Url.OriginalString,
+                    RegisterFrom = "Facebook"
                 };
 
 
@@ -211,7 +213,7 @@ namespace Pertuk.Business.Services.Concrete
 
                 if (createResult.Succeeded)
                 {
-                    var token = _tokenService.GenerateToken(identity, userInfo.FacebookPicture.FacebookPictureData);
+                    var token = _tokenService.GenerateToken(identity);
                     return new AuthenticationResponseModel
                     {
                         Message = "User Registered With Facebook!",
@@ -223,7 +225,7 @@ namespace Pertuk.Business.Services.Concrete
             }
 
             // User Exist
-            var loginToken = _tokenService.GenerateToken(userDetail, userInfo.FacebookPicture.FacebookPictureData);
+            var loginToken = _tokenService.GenerateToken(userDetail);
 
             return new AuthenticationResponseModel
             {
@@ -242,6 +244,18 @@ namespace Pertuk.Business.Services.Concrete
             if (getUserDetail == null) throw new PertukApiException("User not found!");
 
             _pertukUserManager.CheckUserBanAndDeletion(getUserDetail.Id);
+
+            var isUserHasPassword = await _pertukUserManager.HasPasswordAsync(getUserDetail);
+            if (isUserHasPassword == false) // User registered from OAuth...
+            {
+                switch (getUserDetail.RegisterFrom) // Check Registered OAuth Service..
+                {
+                    case "Facebook":
+                        throw new PertukApiException("User has registered with Facebook, Please try countinue with your Facebook account!");
+                    default:
+                        throw new PertukApiException();
+                }
+            }
 
             var checkUserPassword = await _pertukUserManager.CheckPasswordAsync(getUserDetail, loginRequestModel.Password);
             if (!checkUserPassword) throw new PertukApiException("Password is invalid!");

@@ -141,6 +141,11 @@ namespace Pertuk.DataAccess
                 entity.Property(e => e.UpdatedAt).HasColumnName("Updated_at");
 
                 entity.Property(e => e.UserName).HasMaxLength(256);
+
+                entity.Property(e => e.RegisterFrom)
+                    .IsRequired()
+                    .HasColumnName("Register_From")
+                    .HasMaxLength(50);
             });
 
             modelBuilder.Entity<BannedUsers>(entity =>

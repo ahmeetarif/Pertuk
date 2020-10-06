@@ -194,12 +194,12 @@ namespace Pertuk.Business.CustomIdentity
             return userDetail;
         }
 
-        public virtual async Task<IdentityResult> UpdatePertukUser(ApplicationUser userDetail)
-        {
-            ThrowIfDisposed();
+        //public virtual async Task<IdentityResult> UpdatePertukUser(ApplicationUser userDetail)
+        //{
+        //    ThrowIfDisposed();
 
-            return null;
-        }
+        //    return null;
+        //}
 
         #region Private Functions
 

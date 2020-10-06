@@ -1,25 +1,14 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Pertuk.Business.CustomIdentity;
-using Pertuk.Business.Externals.Contracts;
 using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
-using Pertuk.Common.Exceptions;
 using Pertuk.Common.MiddleWare.Statics;
-using Pertuk.DataAccess.Repositories.Abstract;
-using Pertuk.Dto.Requests.Auth;
-using Pertuk.Dto.Responses.Auth;
 using Pertuk.Entities.Models;
-using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Concrete
 {
@@ -39,9 +28,9 @@ namespace Pertuk.Business.Services.Concrete
             _mediaOptions = options.Value;
         }
 
-        public string GenerateToken(ApplicationUser applicationUser, FacebookPictureData facebookPictureData = null)
+        public string GenerateToken(ApplicationUser applicationUser)
         {
-            var userClaims = GenerateClaims(applicationUser, facebookPictureData);
+            var userClaims = GenerateClaims(applicationUser);
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
 
@@ -58,12 +47,13 @@ namespace Pertuk.Business.Services.Concrete
 
         #region Private Functions
 
-        private Claim[] GenerateClaims(ApplicationUser applicationUser, FacebookPictureData facebookPictureData = null)
+        private Claim[] GenerateClaims(ApplicationUser applicationUser)
         {
             List<Claim> userClaims = new List<Claim>();
 
-            if (facebookPictureData == null)
+            if (applicationUser.RegisterFrom == "Pertuk")
             {
+                // Use Pertuk Own CDN Service..
                 applicationUser.ProfileImagePath = _mediaOptions.SitePath + applicationUser.ProfileImagePath;
             }
 
