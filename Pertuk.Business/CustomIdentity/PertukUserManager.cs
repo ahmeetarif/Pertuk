@@ -141,7 +141,12 @@ namespace Pertuk.Business.CustomIdentity
 
         public virtual async Task<ApplicationUser> GetUserDetailByEmailAsync(string email)
         {
-            var userDetail = await this.FindByEmailAsync(email);
+            ThrowIfDisposed();
+            var store = GetEmailStore();
+
+            email = KeyNormalizer.NormalizeEmail(email);
+
+            var userDetail = await store.FindByEmailAsync(email, CancellationToken);
 
             if (userDetail == null) throw new PertukApiException("User not found!");
 

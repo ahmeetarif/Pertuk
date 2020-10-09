@@ -190,7 +190,7 @@ namespace Pertuk.Business.Services.Concrete
 
             var userInfo = await _facebookAuthService.GetUserInfoAsync(facebookAuthRequestModel.AccessToken);
 
-            var userDetail = await _pertukUserManager.GetUserDetailByEmailAsync(userInfo.Email);
+            var userDetail = await _pertukUserManager.FindByEmailAsync(userInfo.Email);
 
             // User not Exist Then Create new one!
             if (userDetail == null)

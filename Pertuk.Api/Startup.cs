@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +12,6 @@ using Pertuk.Business.Extensions.InstallerExt;
 using Pertuk.Business.Options;
 using Pertuk.Common.MiddleWare.Handlers;
 using Pertuk.Contracts.HealthChecks;
-using System.Linq;
 
 namespace Pertuk.Api
 {
@@ -29,7 +29,6 @@ namespace Pertuk.Api
             services.InstallServicesInAssembly(Configuration);
 
             services.Configure<ApiOptions>(options => Configuration.GetSection(nameof(ApiOptions)).Bind(options));
-
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

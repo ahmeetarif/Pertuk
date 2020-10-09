@@ -21,8 +21,7 @@ namespace Pertuk.Business.Extensions.ValidationExt
         {
             var options = ruleBuilder
                 .NotEmpty().WithMessage("Please enter your Email Address!")
-                .Must(IsEmailValid).WithMessage("Please enter valid Email Address!")
-                .MaximumLength(256).WithMessage("Email Address should not be more than 256 characters!");
+                .Must(IsEmailValid).WithMessage("Please enter valid Email Address!");
             return options;
         }
 
