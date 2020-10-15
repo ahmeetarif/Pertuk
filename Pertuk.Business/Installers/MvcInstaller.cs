@@ -1,4 +1,5 @@
-﻿using FluentValidation.AspNetCore;
+﻿using AutoMapper;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +41,8 @@ namespace Pertuk.Business.Installers
             {
                 configure.AddPolicy("SendEmailConfirmationPolicy", x => x.RequireAuthenticatedUser());
             });
+
+            services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
             SwaggerConfiguration(services, configuration);
 
@@ -130,8 +133,6 @@ namespace Pertuk.Business.Installers
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUploadImageService, UploadImageService>();
-            services.AddScoped<IPertukRoleService, PertukRoleService>();
-            services.AddScoped<IQuestionsService, QuestionsService>();
 
             services.AddScoped<IStudentUsersRepository, StudentUsersRepository>();
             services.AddScoped<ITeacherUsersRepository, TeacherUsersRepository>();
@@ -142,7 +143,7 @@ namespace Pertuk.Business.Installers
             services.AddScoped<BunnyCDNService>();
             services.AddScoped<CurrentUser>();
             #endregion
-            
+
             #region Transients
 
             services.AddTransient<IEmailSender, EmailSender>();

@@ -1,7 +1,6 @@
-﻿using Pertuk.Dto.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Pertuk.Dto.Responses.Error
+namespace Pertuk.Contracts.Responses.Error
 {
     public class ErrorResponseModel
     {

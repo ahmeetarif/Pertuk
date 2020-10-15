@@ -1,7 +1,10 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Runtime.Serialization;
+using System.Text;
 
-namespace Pertuk.Dto.Responses
+namespace Pertuk.Contracts.Responses
 {
     [DataContract]
     public class PertukResponse

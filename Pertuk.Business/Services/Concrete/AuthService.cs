@@ -3,8 +3,8 @@ using Pertuk.Business.CustomIdentity;
 using Pertuk.Business.Extensions.EmailExt;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Common.Exceptions;
-using Pertuk.Dto.Requests.Auth;
-using Pertuk.Dto.Responses.Auth;
+using Pertuk.Contracts.Requests.Auth;
+using Pertuk.Contracts.Responses.Auth;
 using Pertuk.Entities.Models;
 using System;
 using System.Threading.Tasks;
@@ -13,15 +13,11 @@ namespace Pertuk.Business.Services.Concrete
 {
     public class AuthService : IAuthService
     {
-        #region Private Variables
-
         private readonly PertukUserManager _pertukUserManager;
         private readonly ITokenService _tokenService;
         private readonly IEmailSender _emailSender;
         private readonly IFacebookAuthService _facebookAuthService;
         private readonly IUploadImageService _uploadImageService;
-
-        #endregion
 
         public AuthService(ITokenService tokenService,
                             IEmailSender emailSender,
@@ -35,107 +31,6 @@ namespace Pertuk.Business.Services.Concrete
             _facebookAuthService = facebookAuthService;
             _uploadImageService = uploadImageService;
         }
-
-        #region Register Student and Teacher Methods
-
-
-        //public async Task<AuthenticationResponseModel> RegisterStudentAsync(StudentUserRegisterRequestModel studentUser)
-        //{
-        //    if (studentUser == null) throw new PertukApiException(BaseErrorResponseMessages.User.EnterUserDetail);
-
-        //    await CheckAndVerifyUserDetailForRegistering(studentUser.Email);
-
-        //    var profileImagePath = await UploadProfilePicture(studentUser.ProfileImage, studentUser.Email);
-
-        //    var applicationIdentity = new ApplicationUser
-        //    {
-        //        Fullname = studentUser.Fullname,
-        //        UserName = studentUser.Username ?? studentUser.Email,
-        //        Email = studentUser.Email,
-        //        CreatedAt = DateTime.Now,
-        //        ProfileImagePath = profileImagePath
-        //    };
-
-        //    var passwordHasher = await _pertukUserManager.UpdatePasswordHash(applicationIdentity, studentUser.Password);
-        //    if (!passwordHasher.Succeeded) throw new PertukApiException();
-
-        //    var studentIdentity = new StudentUsers
-        //    {
-        //        UserId = applicationIdentity.Id,
-        //        Grade = studentUser.Grade,
-        //        User = applicationIdentity,
-        //        Department = studentUser.Department
-        //    };
-
-        //    var result = await _pertukUserManager.CreateStudent(studentIdentity);
-
-        //    if (result == EntityState.Added)
-        //    {
-        //        await GenerateAndSendEmailConfirmationLink(applicationIdentity);
-
-        //        var token = _tokenService.GenerateToken(applicationIdentity);
-
-        //        return new AuthenticationResponseModel
-        //        {
-        //            Message = "User created successfully!",
-        //            Token = token
-        //        };
-        //    }
-
-        //    throw new PertukApiException();
-        //}
-
-        //public async Task<AuthenticationResponseModel> RegisterTeacherAsync(TeacherUserRegisterRequestModel teacherUser)
-        //{
-        //    if (teacherUser == null) throw new PertukApiException(BaseErrorResponseMessages.User.EnterUserDetail);
-
-        //    await CheckAndVerifyUserDetailForRegistering(teacherUser.Email, teacherUser.Username);
-
-        //    var profileImagePath = await UploadProfilePicture(teacherUser.ProfileImage, teacherUser.Email);
-
-        //    var applicationIdentity = new ApplicationUser
-        //    {
-        //        Fullname = teacherUser.Fullname,
-        //        UserName = teacherUser.Username ?? teacherUser.Email,
-        //        Email = teacherUser.Email,
-        //        CreatedAt = DateTime.Now,
-        //        ProfileImagePath = profileImagePath
-        //    };
-
-        //    var passwordHasher = await _pertukUserManager.UpdatePasswordHash(applicationIdentity, teacherUser.Password);
-        //    if (!passwordHasher.Succeeded) throw new PertukApiException();
-
-        //    var teacherIdentity = new TeacherUsers
-        //    {
-        //        UserId = applicationIdentity.Id,
-        //        User = applicationIdentity,
-        //        ForStudent = teacherUser.ForStudent,
-        //        UniversityName = teacherUser.UniversityName,
-        //        DepartmentOf = teacherUser.DepartmentOf,
-        //        AcademicOf = teacherUser.AcademicOf,
-        //        Subject = teacherUser.Subject,
-        //        YearsOfExperience = teacherUser.YearsOfExperience
-        //    };
-
-        //    var result = await _pertukUserManager.CreateTeacher(teacherIdentity);
-
-        //    if (result == EntityState.Added)
-        //    {
-        //        await GenerateAndSendEmailConfirmationLink(applicationIdentity);
-
-        //        var token = _tokenService.GenerateToken(applicationIdentity);
-
-        //        return new AuthenticationResponseModel
-        //        {
-        //            Message = "User created successfully",
-        //            Token = token
-        //        };
-        //    }
-
-        //    throw new PertukApiException();
-        //}
-
-        #endregion
 
         #region Register
 
@@ -304,7 +199,6 @@ namespace Pertuk.Business.Services.Concrete
             if (userDetail == null) throw new PertukApiException("User not found!");
 
             var isEmailConfirmed = await _pertukUserManager.IsEmailConfirmedAsync(userDetail);
-
             if (isEmailConfirmed)
             {
                 throw new PertukApiException("Email Address Already Confirmed!");

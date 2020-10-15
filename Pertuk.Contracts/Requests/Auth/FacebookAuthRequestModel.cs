@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Pertuk.Dto.Requests.Auth
+﻿namespace Pertuk.Contracts.Requests.Auth
 {
     public class FacebookAuthRequestModel
     {

@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Pertuk.Business.Services.Abstract;
+using Pertuk.Contracts.Requests.Auth;
 using Pertuk.Contracts.V1;
-using Pertuk.Dto.Requests.Auth;
 using System.Threading.Tasks;
 
 namespace Pertuk.Api.Controllers
@@ -17,25 +16,6 @@ namespace Pertuk.Api.Controllers
         {
             _authService = authService;
         }
-
-        #region Register Student and Teacher Methods
-
-        //[HttpPost(ApiRoutes.Auth.RegisterStudent)]
-        //public async Task<IActionResult> RegisterStudent([FromForm] StudentUserRegisterRequestModel studentUserModel)
-        //{
-        //    var response = await _authService.RegisterStudentAsync(studentUserModel);
-
-        //    return Ok(response);
-        //}
-
-        //[HttpPost(ApiRoutes.Auth.RegisterTeacher)]
-        //public async Task<IActionResult> RegisterTeacher([FromForm] TeacherUserRegisterRequestModel teacherUserModel)
-        //{
-        //    var response = await _authService.RegisterTeacherAsync(teacherUserModel);
-        //    return Ok(response);
-        //}
-
-        #endregion
 
         #region Register
 

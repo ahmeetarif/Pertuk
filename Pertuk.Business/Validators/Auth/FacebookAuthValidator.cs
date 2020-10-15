@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using Pertuk.Dto.Requests.Auth;
+using Pertuk.Contracts.Requests.Auth;
 
 namespace Pertuk.Business.Validators.Auth
 {

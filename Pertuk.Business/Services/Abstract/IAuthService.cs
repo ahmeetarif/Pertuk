@@ -1,13 +1,11 @@
-﻿using Pertuk.Dto.Requests.Auth;
-using Pertuk.Dto.Responses.Auth;
+﻿using Pertuk.Contracts.Requests.Auth;
+using Pertuk.Contracts.Responses.Auth;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Abstract
 {
     public interface IAuthService
     {
-        //Task<AuthenticationResponseModel> RegisterStudentAsync(StudentUserRegisterRequestModel studentUser);
-        //Task<AuthenticationResponseModel> RegisterTeacherAsync(TeacherUserRegisterRequestModel teacherUser);
         Task<AuthenticationResponseModel> RegisterAsync(RegisterRequestModel registerRequestModel);
         Task<AuthenticationResponseModel> LoginAsync(LoginRequestModel loginRequestModel);
         Task<AuthenticationResponseModel> SendEmailConfirmation(string userId);

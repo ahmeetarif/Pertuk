@@ -1,4 +1,4 @@
-﻿namespace Pertuk.Dto.Requests.Auth
+﻿namespace Pertuk.Contracts.Requests.Auth
 {
     public class LoginRequestModel
     {

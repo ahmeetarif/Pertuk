@@ -1,4 +1,4 @@
-﻿namespace Pertuk.Dto.Responses.UploadImage
+﻿namespace Pertuk.Contracts.Responses.UploadImage
 {
     public class UploadImageResponseModel
     {

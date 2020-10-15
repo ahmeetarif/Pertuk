@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Pertuk.Dto.Responses;
-using System;
+using Pertuk.Contracts.Responses;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;

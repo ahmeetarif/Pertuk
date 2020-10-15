@@ -1,4 +1,4 @@
-﻿namespace Pertuk.Dto.Models
+﻿namespace Pertuk.Contracts.Responses.Error
 {
     public class ErrorModel
     {

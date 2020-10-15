@@ -11,6 +11,7 @@
             }
             set
             {
+                // TODO: Simplify
                 if (value == "Exception of type 'Pertuk.Common.Exceptions.PertukApiException' was thrown.")
                 {
                     value = _message;

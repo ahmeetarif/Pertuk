@@ -1,4 +1,4 @@
-﻿namespace Pertuk.Dto.Responses.Auth
+﻿namespace Pertuk.Contracts.Responses.Auth
 {
     public class AuthenticationResponseModel
     {

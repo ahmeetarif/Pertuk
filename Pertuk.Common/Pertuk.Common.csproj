@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Pertuk.Contracts\Pertuk.Contracts.csproj" />
     <ProjectReference Include="..\Pertuk.Dto\Pertuk.Dto.csproj" />
   </ItemGroup>
 

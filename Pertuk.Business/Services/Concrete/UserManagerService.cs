@@ -1,51 +1,28 @@
-﻿using Pertuk.Business.CustomIdentity;
-using Pertuk.Business.Extensions.EmailExt;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Pertuk.Business.CustomIdentity;
 using Pertuk.Business.Services.Abstract;
-using Pertuk.Common.Exceptions;
-using Pertuk.Dto.Requests.UserManager;
-using Pertuk.Dto.Responses.UserManager;
-using System;
-using System.Threading.Tasks;
+using Pertuk.DataAccess.Repositories.Abstract;
 
 namespace Pertuk.Business.Services.Concrete
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class UserManagerService : IUserManagerService
     {
         private readonly PertukUserManager _pertukUserManager;
-        private readonly IEmailSender _emailSender;
+        private readonly IStudentUsersRepository _studentUsersRepository;
+        private readonly ITeacherUsersRepository _teacherUsersRepository;
+        private readonly IUploadImageService _uploadImageService;
         public UserManagerService(
-            IEmailSender emailSender,
-            PertukUserManager pertukUserManager)
+            PertukUserManager pertukUserManager,
+            IStudentUsersRepository studentUsersRepository,
+            ITeacherUsersRepository teacherUsersRepository,
+            IUploadImageService uploadImageService)
         {
-            _emailSender = emailSender;
             _pertukUserManager = pertukUserManager;
-        }
-
-        public async Task<UserManagerResponseModel> ChangeEmailAddress(ChangeEmailRequestModel changeEmailRequest)
-        {
-            if (changeEmailRequest == null) throw new PertukApiException("Please Enter Email Details!");
-
-            var isUserValid = await _pertukUserManager.FindByEmailAsync(changeEmailRequest.OldEmail);
-            if (isUserValid == null) throw new PertukApiException("User not found with this Email address!");
-
-            var isNewEmailExist = await _pertukUserManager.FindByEmailAsync(changeEmailRequest.NewEmail);
-            if (isNewEmailExist != null) throw new PertukApiException("User already exist with this new Email address!");
-
-            var updateEmail = await _pertukUserManager.SetEmailAsync(isUserValid, changeEmailRequest.NewEmail);
-            if (!updateEmail.Succeeded) throw new PertukApiException();
-
-            var digitCodeForConfirmation = await _pertukUserManager.GenerateDigitCodeForEmailConfirmationAsync(isUserValid);
-
-            try
-            {
-                await _emailSender.SendEmailConfirmation(digitCodeForConfirmation, changeEmailRequest.NewEmail, isUserValid.Fullname ?? "Pertuk Users");
-            }
-            catch (Exception) { throw new PertukApiException(); }
-
-            return new UserManagerResponseModel
-            {
-                Message = "Email address has been changed! Please check your new Email address for confirmation!"
-            };
+            _studentUsersRepository = studentUsersRepository;
+            _teacherUsersRepository = teacherUsersRepository;
+            _uploadImageService = uploadImageService;
         }
     }
 }
