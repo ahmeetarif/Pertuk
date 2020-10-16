@@ -14,6 +14,7 @@ using Pertuk.Business.Services.Concrete;
 using Pertuk.Common.MiddleWare;
 using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.DataAccess.Repositories.Concrete;
+using Pertuk.DataAccess.UnitOfWork;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -133,6 +134,8 @@ namespace Pertuk.Business.Installers
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUploadImageService, UploadImageService>();
+            services.AddScoped<IUserManagerService, UserManagerService>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddScoped<IStudentUsersRepository, StudentUsersRepository>();
             services.AddScoped<ITeacherUsersRepository, TeacherUsersRepository>();

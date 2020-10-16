@@ -22,8 +22,15 @@ namespace Pertuk.DataAccess.BaseRepository
         {
             using (var trans = _pertukDbContext.BeginTransaction())
             {
-                var res = table.Add(entity);
-                return await Task.FromResult(res.State);
+                try
+                {
+                    var res = table.Add(entity);
+                    return await Task.FromResult(EntityState.Added);
+                }
+                catch (Exception)
+                {
+                    return await Task.FromResult(EntityState.Unchanged);
+                }
             }
         }
 

@@ -23,5 +23,12 @@
             public const string FacebookAuthentication = Base + "/facebookauthentication";
 
         }
+
+        public static class UserManager
+        {
+            public const string Base = Version + "/usermanager";
+            public const string SetStudentUser = Base + "/setStudentUser";
+            public const string SetTeacherUser = Base + "/setTeacherUser";
+        }
     }
 }
