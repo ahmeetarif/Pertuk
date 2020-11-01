@@ -30,7 +30,8 @@ namespace Pertuk.Business.Installers
                 .AddUserManager<PertukUserManager>()
                 .AddTokenProvider<DigitTokenProvider>(DigitTokenProvider.EmailDigit)
                 .AddTokenProvider<DigitTokenProvider>(DigitTokenProvider.PhoneDigit)
-                .AddEntityFrameworkStores<PertukDbContext>();
+                .AddEntityFrameworkStores<PertukDbContext>()
+                .AddTokenProvider("Pertuk", typeof(DataProtectorTokenProvider<ApplicationUser>));
         }
     }
 }

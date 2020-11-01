@@ -19,7 +19,7 @@ namespace Pertuk.Business.CustomIdentity.Providers
 
         public override async Task<string> GenerateAsync(string purpose, UserManager<ApplicationUser> manager, ApplicationUser user)
         {
-            var token = new SecurityToken(await manager.CreateSecurityTokenAsync(user));
+            var token = new CustomSecurityToken(await manager.CreateSecurityTokenAsync(user));
             var modifier = await GetUserModifierAsync(purpose, manager, user);
             var code = Rfc6238AuthenticationService.GenerateCode(token, modifier, 6).ToString("D4", CultureInfo.InvariantCulture);
 
@@ -34,7 +34,7 @@ namespace Pertuk.Business.CustomIdentity.Providers
                 return false;
             }
 
-            var securityToken = new SecurityToken(await manager.CreateSecurityTokenAsync(user));
+            var securityToken = new CustomSecurityToken(await manager.CreateSecurityTokenAsync(user));
             var modifier = await GetUserModifierAsync(purpose, manager, user);
             var valid = Rfc6238AuthenticationService.ValidateCode(securityToken, code, modifier, token.Length);
 

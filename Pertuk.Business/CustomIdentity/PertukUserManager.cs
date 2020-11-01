@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Server.IIS.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -39,6 +37,8 @@ namespace Pertuk.Business.CustomIdentity
             _teacherUsersRepository = teacherUsersRepository;
         }
 
+        #region Email Confirmation
+
         /// <summary>
         /// Validates that an email confirmation digit code is valid and matches the specified user.
         /// </summary>
@@ -73,6 +73,41 @@ namespace Pertuk.Business.CustomIdentity
             return await _digitTokenProvider.GenerateAsync(DigitTokenProvider.EmailDigit, this, user);
         }
 
+
+        #endregion
+
+
+        #region Reset Password
+
+        /// <summary>
+        /// Generates an recovery code for reseting password.
+        /// </summary>
+        /// <param name="user">The user to generate an Recovery Code!</param>
+        /// <returns>The System.Threading.Tasks.Task that represents the asynchronous operation, an Recovery Code.</returns>
+        public virtual async Task<string> GenerateRecoveryCodeForResetPasswordAsync(ApplicationUser user)
+        {
+            ThrowIfDisposed();
+            return await _digitTokenProvider.GenerateAsync(DigitTokenProvider.EmailDigit, this, user);
+        }
+
+        public virtual async Task<IdentityResult> ResetPasswordWithDigitCodeAsync(ApplicationUser user, string digitCode, string newPassword)
+        {
+            ThrowIfDisposed();
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
+            if (!await _digitTokenProvider.ValidateAsync(DigitTokenProvider.EmailDigit, digitCode, this, user))
+            {
+                return IdentityResult.Failed(ErrorDescriber.InvalidToken());
+            }
+
+            var result = await UpdatePasswordHash(user, newPassword, validatePassword: true);
+            if (!result.Succeeded) return result;
+
+            return await UpdateUserAsync(user);
+        }
+
+        #endregion
+
         public virtual async Task<IdentityResult> UpdatePasswordHash(ApplicationUser user, string password)
         {
             ThrowIfDisposed();
@@ -91,21 +126,7 @@ namespace Pertuk.Business.CustomIdentity
             return result;
         }
 
-        public virtual async Task<IdentityResult> ResetPasswordWithDigitCodeAsync(ApplicationUser user, string digitCode, string newPassword)
-        {
-            ThrowIfDisposed();
-            if (user == null) throw new ArgumentNullException(nameof(user));
 
-            if (!await _digitTokenProvider.ValidateAsync(DigitTokenProvider.EmailDigit, digitCode, this, user))
-            {
-                return IdentityResult.Failed(ErrorDescriber.InvalidToken());
-            }
-
-            var result = await UpdatePasswordHash(user, newPassword, validatePassword: true);
-            if (!result.Succeeded) return result;
-
-            return await UpdateUserAsync(user);
-        }
 
         public virtual void CheckUserBanAndDeletion(string userId)
         {
@@ -196,13 +217,6 @@ namespace Pertuk.Business.CustomIdentity
             return userDetail;
         }
 
-        //public virtual async Task<IdentityResult> UpdatePertukUser(ApplicationUser userDetail)
-        //{
-        //    ThrowIfDisposed();
-
-        //    return null;
-        //}
-
         #region Private Functions
 
         private IUserEmailStore<ApplicationUser> GetEmailStore(bool throwOnFail = true)
@@ -264,16 +278,6 @@ namespace Pertuk.Business.CustomIdentity
             byte[] bytes = new byte[20];
             _rng.GetBytes(bytes);
             return Base32.ToBase32(bytes);
-        }
-
-        private IUserLockoutStore<ApplicationUser> GetUserLockoutStore()
-        {
-            var cast = Store as IUserLockoutStore<ApplicationUser>;
-            if (cast == null)
-            {
-                throw new NotSupportedException();
-            }
-            return cast;
         }
 
         #endregion

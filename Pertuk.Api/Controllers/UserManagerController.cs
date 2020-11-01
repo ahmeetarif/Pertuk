@@ -1,11 +1,13 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pertuk.Business.Services.Abstract;
-using Pertuk.Contracts.Requests.UserManager;
+using Pertuk.Contracts.V1.Requests.UserManager;
 using Pertuk.Contracts.V1;
 
 namespace Pertuk.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     public class UserManagerController : Controller
     {

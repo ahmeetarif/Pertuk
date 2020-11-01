@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Pertuk.Contracts.Responses.Error;
+using Pertuk.Contracts.V1.Responses.Error;
 using System.Linq;
 using System.Threading.Tasks;
 

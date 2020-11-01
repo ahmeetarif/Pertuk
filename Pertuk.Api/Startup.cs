@@ -1,17 +1,12 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
+using Pertuk.Api.Extensions;
 using Pertuk.Api.Options;
 using Pertuk.Business.Extensions.InstallerExt;
-using Pertuk.Business.Options;
 using Pertuk.Common.MiddleWare.Handlers;
-using Pertuk.Contracts.HealthChecks;
-using System.Linq;
 
 namespace Pertuk.Api
 {
@@ -42,44 +37,9 @@ namespace Pertuk.Api
 
             app.UseRouting();
 
-            #region HealthCheck Configuration
+            app.ConfigureHealthCheck();
 
-            app.UseHealthChecks("/v1/health", new HealthCheckOptions
-            {
-                ResponseWriter = async (context, report) =>
-                {
-                    context.Response.ContentType = "application/json";
-
-                    var response = new HealthCheckResponse
-                    {
-                        Status = report.Status.ToString(),
-                        Checks = report.Entries.Select(x => new HealthCheck
-                        {
-                            Component = x.Key,
-                            Status = x.Value.Status.ToString(),
-                            Description = x.Value.Description
-                        }),
-                        Duration = report.TotalDuration
-                    };
-
-                    await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
-                }
-            });
-
-            #endregion
-
-            #region Swagger Configuration
-
-            var swaggerOptions = new SwaggerOption();
-            Configuration.GetSection(nameof(SwaggerOption)).Bind(swaggerOptions);
-
-            app.UseSwagger(option => option.RouteTemplate = swaggerOptions.JsonRoute);
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint(swaggerOptions.UIEndpoint, swaggerOptions.Description);
-            });
-
-            #endregion
+            app.ConfigureSwagger(Configuration);
 
             app.UseAuthentication();
             app.UseAuthorization();

@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Pertuk.Business.CustomIdentity;
+using Pertuk.Business.CustomIdentity.JwtManager.Abstract;
 using Pertuk.Business.Extensions.EmailExt;
+using Pertuk.Business.Externals.Managers.Abstract;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Common.Exceptions;
-using Pertuk.Contracts.Requests.Auth;
-using Pertuk.Contracts.Responses.Auth;
+using Pertuk.Contracts.V1.Requests.Auth;
+using Pertuk.Contracts.V1.Responses.Auth;
 using Pertuk.Entities.Models;
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Concrete
@@ -14,22 +17,21 @@ namespace Pertuk.Business.Services.Concrete
     public class AuthService : IAuthService
     {
         private readonly PertukUserManager _pertukUserManager;
-        private readonly ITokenService _tokenService;
         private readonly IEmailSender _emailSender;
-        private readonly IFacebookAuthService _facebookAuthService;
         private readonly IUploadImageService _uploadImageService;
-
-        public AuthService(ITokenService tokenService,
-                            IEmailSender emailSender,
+        private readonly IJwtManager _jwtManager;
+        private readonly IFacebookAuthenticationManager _facebookAuthenticationManager;
+        public AuthService(IEmailSender emailSender,
                             PertukUserManager pertukUserManager,
-                            IFacebookAuthService facebookAuthService,
-                            IUploadImageService uploadImageService)
+                            IUploadImageService uploadImageService,
+                            IJwtManager jwtManager,
+                            IFacebookAuthenticationManager facebookAuthenticationManager)
         {
-            _tokenService = tokenService;
+            _jwtManager = jwtManager;
             _emailSender = emailSender;
             _pertukUserManager = pertukUserManager;
-            _facebookAuthService = facebookAuthService;
             _uploadImageService = uploadImageService;
+            _facebookAuthenticationManager = facebookAuthenticationManager;
         }
 
         #region Register
@@ -57,14 +59,14 @@ namespace Pertuk.Business.Services.Concrete
 
             if (registerResult.Succeeded)
             {
-                await GenerateAndSendEmailConfirmationLink(applicationIdentity);
+                await GenerateAndSendEmailConfirmationDigitCode(applicationIdentity);
 
-                var token = _tokenService.GenerateToken(applicationIdentity);
+                var token = await _jwtManager.GenerateToken(applicationIdentity);
 
                 return new AuthenticationResponseModel
                 {
                     Message = "User created successfully!",
-                    Token = token
+                    Token = token.AccessToken
                 };
             }
 
@@ -75,15 +77,15 @@ namespace Pertuk.Business.Services.Concrete
 
         #region Facebook Auth
 
-        public async Task<AuthenticationResponseModel> FacebookAuthentication(FacebookAuthRequestModel facebookAuthRequestModel)
+        public async Task<AuthenticationResponseModel> FacebookAuthenticationAsync(FacebookAuthRequestModel facebookAuthRequestModel)
         {
             if (string.IsNullOrEmpty(facebookAuthRequestModel.AccessToken)) throw new PertukApiException("Invalid Attempt");
 
-            var validateToken = await _facebookAuthService.ValidateAccessTokenAsync(facebookAuthRequestModel.AccessToken);
+            var validateToken = await _facebookAuthenticationManager.ValidateAccessTokenAsync(facebookAuthRequestModel.AccessToken);
 
             if (!validateToken.FacebookTokenValidationData.IsValid) throw new PertukApiException("Invalid Attempt");
 
-            var userInfo = await _facebookAuthService.GetUserInfoAsync(facebookAuthRequestModel.AccessToken);
+            var userInfo = await _facebookAuthenticationManager.GetUserInfoAsync(facebookAuthRequestModel.AccessToken);
 
             var userDetail = await _pertukUserManager.FindByEmailAsync(userInfo.Email);
 
@@ -108,11 +110,11 @@ namespace Pertuk.Business.Services.Concrete
 
                 if (createResult.Succeeded)
                 {
-                    var token = _tokenService.GenerateToken(identity);
+                    var token = await _jwtManager.GenerateToken(identity);
                     return new AuthenticationResponseModel
                     {
                         Message = "User Registered With Facebook!",
-                        Token = token
+                        Token = token.AccessToken
                     };
                 }
 
@@ -120,17 +122,18 @@ namespace Pertuk.Business.Services.Concrete
             }
 
             // User Exist
-            var loginToken = _tokenService.GenerateToken(userDetail);
+            var loginToken = await _jwtManager.GenerateToken(userDetail);
 
             return new AuthenticationResponseModel
             {
                 Message = "User Logged In With Facebook!",
-                Token = loginToken
+                Token = loginToken.AccessToken
             };
         }
 
         #endregion
 
+        #region Login
         public async Task<AuthenticationResponseModel> LoginAsync(LoginRequestModel loginRequestModel)
         {
             if (loginRequestModel == null) throw new PertukApiException("Please provide required information!");
@@ -155,15 +158,21 @@ namespace Pertuk.Business.Services.Concrete
             var checkUserPassword = await _pertukUserManager.CheckPasswordAsync(getUserDetail, loginRequestModel.Password);
             if (!checkUserPassword) throw new PertukApiException("Password is invalid!");
 
-            var token = _tokenService.GenerateToken(getUserDetail);
+            var token = await _jwtManager.GenerateToken(getUserDetail);
+
             return new AuthenticationResponseModel
             {
                 Message = "User Logged In",
-                Token = token
+                Token = token.AccessToken,
+                RefreshToken = token.RefreshToken
             };
 
             throw new PertukApiException();
         }
+
+        #endregion
+
+        #region Email Confirmation
 
         public async Task<AuthenticationResponseModel> ConfirmEmailAsync(ConfirmEmailRequestModel confirmEmailRequest)
         {
@@ -190,7 +199,7 @@ namespace Pertuk.Business.Services.Concrete
             throw new PertukApiException();
         }
 
-        public async Task<AuthenticationResponseModel> SendEmailConfirmation(string userId)
+        public async Task<AuthenticationResponseModel> SendEmailConfirmationCodeAsync(string userId)
         {
             if (string.IsNullOrEmpty(userId) && string.IsNullOrWhiteSpace(userId)) throw new PertukApiException("Please provide required information!");
 
@@ -204,7 +213,7 @@ namespace Pertuk.Business.Services.Concrete
                 throw new PertukApiException("Email Address Already Confirmed!");
             }
 
-            await GenerateAndSendEmailConfirmationLink(userDetail);
+            await GenerateAndSendEmailConfirmationDigitCode(userDetail);
 
             return new AuthenticationResponseModel
             {
@@ -212,7 +221,11 @@ namespace Pertuk.Business.Services.Concrete
             };
         }
 
-        public async Task<AuthenticationResponseModel> SendResetPasswordLink(ForgotPasswordRequestModel forgotPasswordRequest)
+        #endregion
+
+        #region Reset Password
+
+        public async Task<AuthenticationResponseModel> SendResetPasswordCodeAsync(ForgotPasswordRequestModel forgotPasswordRequest)
         {
             if (forgotPasswordRequest == null) throw new PertukApiException("Please provide required information!");
 
@@ -228,7 +241,7 @@ namespace Pertuk.Business.Services.Concrete
             };
         }
 
-        public async Task<AuthenticationResponseModel> ResetPassword(ResetPasswordRequestModel resetPasswordRequest)
+        public async Task<AuthenticationResponseModel> ResetPasswordAsync(ResetPasswordRequestModel resetPasswordRequest)
         {
             if (string.IsNullOrEmpty(resetPasswordRequest.Email) && string.IsNullOrWhiteSpace(resetPasswordRequest.Email) || string.IsNullOrEmpty(resetPasswordRequest.DigitCode) && string.IsNullOrWhiteSpace(resetPasswordRequest.DigitCode)) throw new PertukApiException("Please provide required information!");
 
@@ -248,9 +261,29 @@ namespace Pertuk.Business.Services.Concrete
             throw new PertukApiException();
         }
 
+        #endregion
+
+        #region RefreshToken
+
+        public async Task<AuthenticationResponseModel> RefreshTokenAsync(RefreshTokenRequestModel refreshTokenRequest)
+        {
+            if (refreshTokenRequest == null) throw new PertukApiException("Please provide required information!");
+
+            var refreshTokenResult = await _jwtManager.RefreshTokenAsync(refreshTokenRequest);
+
+            return new AuthenticationResponseModel
+            {
+                Token = refreshTokenResult.AccessToken,
+                RefreshToken = refreshTokenResult.RefreshToken,
+                Message = "Token has been refreshed!"
+            };
+        }
+
+        #endregion
+
         #region Private Functions
 
-        private async Task GenerateAndSendEmailConfirmationLink(ApplicationUser userDetail)
+        private async Task GenerateAndSendEmailConfirmationDigitCode(ApplicationUser userDetail)
         {
             var confirmationDigitCode = await _pertukUserManager.GenerateDigitCodeForEmailConfirmationAsync(userDetail);
 
@@ -266,7 +299,7 @@ namespace Pertuk.Business.Services.Concrete
 
         private async Task GenerateAndSendResetPasswordLink(ApplicationUser userDetail)
         {
-            var resetPasswordDigitCode = await _pertukUserManager.GenerateDigitCodeForEmailConfirmationAsync(userDetail);
+            var resetPasswordDigitCode = await _pertukUserManager.GenerateRecoveryCodeForResetPasswordAsync(userDetail);
 
             try
             {

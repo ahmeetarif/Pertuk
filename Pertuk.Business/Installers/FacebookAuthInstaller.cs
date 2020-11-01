@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Pertuk.Business.Externals.Managers.Abstract;
+using Pertuk.Business.Externals.Managers.Concrete;
 using Pertuk.Business.Options;
-using Pertuk.Business.Services.Abstract;
-using Pertuk.Business.Services.Concrete;
 
 namespace Pertuk.Business.Installers
 {
@@ -16,7 +16,7 @@ namespace Pertuk.Business.Installers
             services.AddSingleton(facebookAuthOptions);
 
             services.AddHttpClient();
-            services.AddSingleton<IFacebookAuthService, FacebookAuthService>();
+            services.AddSingleton<IFacebookAuthenticationManager, FacebookAuthenticationManager>();
         }
     }
 }

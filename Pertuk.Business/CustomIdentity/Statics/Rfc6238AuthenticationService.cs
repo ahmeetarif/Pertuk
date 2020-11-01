@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
@@ -57,7 +56,7 @@ namespace Pertuk.Business.CustomIdentity.Statics
             return (ulong)(delta.Ticks / _timestep.Ticks);
         }
 
-        public static int GenerateCode(SecurityToken securityToken, string modifier = null, int numberOfDigits = 6)
+        public static int GenerateCode(CustomSecurityToken securityToken, string modifier = null, int numberOfDigits = 6)
         {
 
             if (securityToken == null)
@@ -74,7 +73,7 @@ namespace Pertuk.Business.CustomIdentity.Statics
             }
         }
 
-        public static bool ValidateCode(SecurityToken securityToken, int code, string modifier = null, int numberOfDigits = 6)
+        public static bool ValidateCode(CustomSecurityToken securityToken, int code, string modifier = null, int numberOfDigits = 6)
         {
             if (securityToken == null)
             {

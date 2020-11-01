@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using Pertuk.Business.Extensions.StringExt;
 using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
@@ -7,9 +6,6 @@ using Pertuk.Common.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.Extensions.EmailExt

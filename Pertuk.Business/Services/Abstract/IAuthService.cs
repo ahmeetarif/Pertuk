@@ -1,5 +1,5 @@
-﻿using Pertuk.Contracts.Requests.Auth;
-using Pertuk.Contracts.Responses.Auth;
+﻿using Pertuk.Contracts.V1.Requests.Auth;
+using Pertuk.Contracts.V1.Responses.Auth;
 using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Abstract
@@ -8,10 +8,11 @@ namespace Pertuk.Business.Services.Abstract
     {
         Task<AuthenticationResponseModel> RegisterAsync(RegisterRequestModel registerRequestModel);
         Task<AuthenticationResponseModel> LoginAsync(LoginRequestModel loginRequestModel);
-        Task<AuthenticationResponseModel> SendEmailConfirmation(string userId);
+        Task<AuthenticationResponseModel> SendEmailConfirmationCodeAsync(string userId);
         Task<AuthenticationResponseModel> ConfirmEmailAsync(ConfirmEmailRequestModel confirmEmailRequest);
-        Task<AuthenticationResponseModel> SendResetPasswordLink(ForgotPasswordRequestModel forgotPasswordRequest);
-        Task<AuthenticationResponseModel> ResetPassword(ResetPasswordRequestModel resetPasswordRequest);
-        Task<AuthenticationResponseModel> FacebookAuthentication(FacebookAuthRequestModel facebookAuthRequestModel);
+        Task<AuthenticationResponseModel> SendResetPasswordCodeAsync(ForgotPasswordRequestModel forgotPasswordRequest);
+        Task<AuthenticationResponseModel> ResetPasswordAsync(ResetPasswordRequestModel resetPasswordRequest);
+        Task<AuthenticationResponseModel> FacebookAuthenticationAsync(FacebookAuthRequestModel facebookAuthRequestModel);
+        Task<AuthenticationResponseModel> RefreshTokenAsync(RefreshTokenRequestModel refreshTokenRequest);
     }
 }

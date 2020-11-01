@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pertuk.Business.Services.Abstract;
-using Pertuk.Contracts.Requests.Auth;
+using Pertuk.Contracts.V1.Requests.Auth;
 using Pertuk.Contracts.V1;
 using System.Threading.Tasks;
 
 namespace Pertuk.Api.Controllers
 {
+    [Authorize]
     [ApiController]
     public class AuthController : Controller
     {
@@ -19,6 +20,7 @@ namespace Pertuk.Api.Controllers
 
         #region Register
 
+        [AllowAnonymous]
         [HttpPost(ApiRoutes.Auth.Register)]
         public async Task<IActionResult> Register([FromForm] RegisterRequestModel registerRequestModel)
         {
@@ -30,6 +32,7 @@ namespace Pertuk.Api.Controllers
 
         #region Login
 
+        [AllowAnonymous]
         [HttpPost(ApiRoutes.Auth.Login)]
         public async Task<IActionResult> Login([FromBody] LoginRequestModel loginRequest)
         {
@@ -55,7 +58,7 @@ namespace Pertuk.Api.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "SendEmailConfirmationPolicy")]
         public async Task<IActionResult> SendEmailConfirmation([FromBody] string userId)
         {
-            var response = await _authService.SendEmailConfirmation(userId);
+            var response = await _authService.SendEmailConfirmationCodeAsync(userId);
 
             return Ok(response);
         }
@@ -64,18 +67,20 @@ namespace Pertuk.Api.Controllers
 
         #region Reset Password
 
+        [AllowAnonymous]
         [HttpPost(ApiRoutes.Auth.SendResetPassword)]
         public async Task<IActionResult> SendResetPassword([FromBody] ForgotPasswordRequestModel forgotPasswordRequestModel)
         {
-            var response = await _authService.SendResetPasswordLink(forgotPasswordRequestModel);
+            var response = await _authService.SendResetPasswordCodeAsync(forgotPasswordRequestModel);
 
             return Ok(response);
         }
 
         [HttpPost(ApiRoutes.Auth.ResetPassword)]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestModel resetPasswordRequestModel)
         {
-            var response = await _authService.ResetPassword(resetPasswordRequestModel);
+            var response = await _authService.ResetPasswordAsync(resetPasswordRequestModel);
             return Ok(response);
         }
 
@@ -83,14 +88,29 @@ namespace Pertuk.Api.Controllers
 
         #region Facebook Auth
 
+        [AllowAnonymous]
         [HttpPost(ApiRoutes.Auth.FacebookAuthentication)]
         public async Task<IActionResult> FacebookAuthentication(FacebookAuthRequestModel facebookAuthRequestModel)
         {
-            var response = await _authService.FacebookAuthentication(facebookAuthRequestModel);
+            var response = await _authService.FacebookAuthenticationAsync(facebookAuthRequestModel);
 
             return Ok(response);
         }
 
         #endregion
+
+        #region Refresh Token
+
+        [AllowAnonymous]
+        [HttpPost(ApiRoutes.Auth.RefreshToken)]
+        public async Task<IActionResult> RefreshToken(RefreshTokenRequestModel refreshTokenRequest)
+        {
+            var response = await _authService.RefreshTokenAsync(refreshTokenRequest);
+
+            return Ok(response);
+        }
+
+        #endregion
+
     }
 }

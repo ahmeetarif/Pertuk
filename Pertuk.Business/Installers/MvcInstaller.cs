@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Pertuk.Business.BunnyCDN;
+using Pertuk.Business.CustomIdentity.JwtManager.Abstract;
+using Pertuk.Business.CustomIdentity.JwtManager.Concrete;
 using Pertuk.Business.Filters;
 using Pertuk.Business.Options;
 using Pertuk.Business.Services.Abstract;
@@ -15,6 +17,7 @@ using Pertuk.Common.MiddleWare;
 using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.DataAccess.Repositories.Concrete;
 using Pertuk.DataAccess.UnitOfWork;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
@@ -108,10 +111,11 @@ namespace Pertuk.Business.Installers
                 ValidateAudience = true,
                 ValidIssuer = jwtOption.Issuer,
                 ValidAudience = jwtOption.Audience,
-                RequireExpirationTime = false,
+                RequireExpirationTime = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOption.Secret)),
                 ValidateIssuerSigningKey = true,
-                ValidateLifetime = true
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(jwtOption.TokenLifeTime.TotalMinutes)
             };
 
             services.AddSingleton(tokenValidationParameters);
@@ -131,7 +135,8 @@ namespace Pertuk.Business.Installers
         {
             #region Scopes
 
-            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IJwtManager, JwtManager>();
+
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUploadImageService, UploadImageService>();
             services.AddScoped<IUserManagerService, UserManagerService>();
@@ -160,6 +165,7 @@ namespace Pertuk.Business.Installers
         private void OptionsConfiguration(IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<MediaOptions>(options => configuration.GetSection(nameof(MediaOptions)).Bind(options));
+            services.Configure<JwtOption>(option => configuration.GetSection(nameof(JwtOption)).Bind(option));
         }
 
         #endregion

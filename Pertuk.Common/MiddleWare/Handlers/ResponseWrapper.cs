@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Pertuk.Contracts.Responses;
+using Pertuk.Contracts.V1.Responses;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;

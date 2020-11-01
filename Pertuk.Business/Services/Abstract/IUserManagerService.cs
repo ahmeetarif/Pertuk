@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Pertuk.Contracts.Requests.UserManager;
-using Pertuk.Contracts.Responses.UserManager;
+using Pertuk.Contracts.V1.Requests.UserManager;
+using Pertuk.Contracts.V1.Responses.UserManager;
 
 namespace Pertuk.Business.Services.Abstract
 {

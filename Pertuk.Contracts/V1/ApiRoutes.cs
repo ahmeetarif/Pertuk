@@ -12,15 +12,17 @@
 
             public const string Login = Base + "/login";
 
-            public const string ConfirmEmail = Base + "/confirmemail";
+            public const string ConfirmEmail = Base + "/confirmEmail";
 
-            public const string SendEmailConfirmation = Base + "/sendemailconfirmation";
+            public const string SendEmailConfirmation = Base + "/sendEmailConfirmation";
 
-            public const string SendResetPassword = Base + "/sendresetpassword";
+            public const string SendResetPassword = Base + "/sendResetPassword";
 
-            public const string ResetPassword = Base + "/resetpassword";
+            public const string ResetPassword = Base + "/resetPassword";
 
-            public const string FacebookAuthentication = Base + "/facebookauthentication";
+            public const string FacebookAuthentication = Base + "/facebookAuthentication";
+
+            public const string RefreshToken = Base + "/refreshToken";
 
         }
 
