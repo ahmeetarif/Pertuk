@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Pertuk.Business.CustomIdentity;
 using Pertuk.Business.CustomIdentity.JwtManager.Abstract;
 using Pertuk.Business.Extensions.EmailExt;
@@ -8,9 +10,6 @@ using Pertuk.Common.Exceptions;
 using Pertuk.Contracts.V1.Requests.Auth;
 using Pertuk.Contracts.V1.Responses.Auth;
 using Pertuk.Entities.Models;
-using System;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Concrete
 {
@@ -243,12 +242,12 @@ namespace Pertuk.Business.Services.Concrete
 
         public async Task<AuthenticationResponseModel> ResetPasswordAsync(ResetPasswordRequestModel resetPasswordRequest)
         {
-            if (string.IsNullOrEmpty(resetPasswordRequest.Email) && string.IsNullOrWhiteSpace(resetPasswordRequest.Email) || string.IsNullOrEmpty(resetPasswordRequest.DigitCode) && string.IsNullOrWhiteSpace(resetPasswordRequest.DigitCode)) throw new PertukApiException("Please provide required information!");
+            if (string.IsNullOrEmpty(resetPasswordRequest.Email) && string.IsNullOrWhiteSpace(resetPasswordRequest.Email)) throw new PertukApiException("Please provide required information!");
 
             var userDetail = await _pertukUserManager.FindByEmailAsync(resetPasswordRequest.Email);
             if (userDetail == null) throw new PertukApiException("User not found!");
 
-            var resetPasswordResult = await _pertukUserManager.ResetPasswordWithDigitCodeAsync(userDetail, resetPasswordRequest.DigitCode, resetPasswordRequest.NewPassword);
+            var resetPasswordResult = await _pertukUserManager.ResetPasswordAsync(userDetail, resetPasswordRequest.NewPassword);
 
             if (resetPasswordResult.Succeeded)
             {
@@ -259,6 +258,24 @@ namespace Pertuk.Business.Services.Concrete
             }
 
             throw new PertukApiException();
+        }
+
+        public async Task<AuthenticationResponseModel> VerifyResetPasswordRecoveryCodeAsync(VerifyResetPasswordRequestModel verifyResetPasswordRequest)
+        {
+            if (verifyResetPasswordRequest == null) throw new PertukApiException("Please provide required information!");
+
+            var userDetails = await _pertukUserManager.FindByEmailAsync(verifyResetPasswordRequest.Email);
+
+            if (userDetails == null) throw new PertukApiException("User not found!");
+
+            var verifyResetCodeResult = await _pertukUserManager.VerifyResetPasswordRecoveryCodeAsync(userDetails, verifyResetPasswordRequest.RecoveryCode);
+
+            if (!verifyResetCodeResult) throw new PertukApiException("This digit code is invalid!");
+
+            return new AuthenticationResponseModel
+            {
+                Message = "Thanks for Recovery Code! Please type your new password!"
+            };
         }
 
         #endregion

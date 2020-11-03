@@ -106,6 +106,37 @@ namespace Pertuk.Business.CustomIdentity
             return await UpdateUserAsync(user);
         }
 
+        public virtual async Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string newPassword)
+        {
+            ThrowIfDisposed();
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
+            var result = await UpdatePasswordHash(user, newPassword, validatePassword: true);
+            if (!result.Succeeded) return result;
+
+            return await UpdateUserAsync(user);
+        }
+
+        public virtual async Task<bool> VerifyResetPasswordRecoveryCodeAsync(ApplicationUser user, string digitCode)
+        {
+            ThrowIfDisposed();
+            var emailStore = GetEmailStore();
+
+            if (user == null) throw new ArgumentNullException("User is null!");
+
+            try
+            {
+                var result = await _digitTokenProvider.ValidateAsync(DigitTokenProvider.EmailDigit, digitCode, this, user);
+
+                return result == true ? true : false;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+
+        }
+
         #endregion
 
         public virtual async Task<IdentityResult> UpdatePasswordHash(ApplicationUser user, string password)

@@ -10,7 +10,6 @@ namespace Pertuk.Business.Validators.Auth
         {
             RuleFor(x => x.Email).Email();
             RuleFor(x => x.NewPassword).Password();
-            RuleFor(x => x.DigitCode).DigitCode();
         }
     }
 }

@@ -84,6 +84,14 @@ namespace Pertuk.Api.Controllers
             return Ok(response);
         }
 
+        [HttpPost(ApiRoutes.Auth.VerifyResetPasswordRecoveryCode)]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyResetPasswordRecoveryCode([FromBody] VerifyResetPasswordRequestModel verifyResetPasswordRequestModel)
+        {
+            var response = await _authService.VerifyResetPasswordRecoveryCodeAsync(verifyResetPasswordRequestModel);
+            return Ok(response);
+        }
+
         #endregion
 
         #region Facebook Auth

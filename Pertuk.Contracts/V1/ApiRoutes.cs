@@ -24,6 +24,7 @@
 
             public const string RefreshToken = Base + "/refreshToken";
 
+            public const string VerifyResetPasswordRecoveryCode = Base + "/verifyResetPasswordRecoveryCode";
         }
 
         public static class UserManager

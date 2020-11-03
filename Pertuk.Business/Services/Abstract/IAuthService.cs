@@ -14,5 +14,6 @@ namespace Pertuk.Business.Services.Abstract
         Task<AuthenticationResponseModel> ResetPasswordAsync(ResetPasswordRequestModel resetPasswordRequest);
         Task<AuthenticationResponseModel> FacebookAuthenticationAsync(FacebookAuthRequestModel facebookAuthRequestModel);
         Task<AuthenticationResponseModel> RefreshTokenAsync(RefreshTokenRequestModel refreshTokenRequest);
+        Task<AuthenticationResponseModel> VerifyResetPasswordRecoveryCodeAsync(VerifyResetPasswordRequestModel verifyResetPasswordRequest);
     }
 }
