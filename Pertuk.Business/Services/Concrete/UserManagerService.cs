@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Pertuk.Business.CustomIdentity;
 using Pertuk.Business.Services.Abstract;
 using Pertuk.Common.Exceptions;
+using Pertuk.Common.MiddleWare;
 using Pertuk.Contracts.V1.Requests.UserManager;
 using Pertuk.Contracts.V1.Responses.UserManager;
 using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.DataAccess.UnitOfWork;
+using Pertuk.Dto.Models;
 using Pertuk.Entities.Models;
 
 namespace Pertuk.Business.Services.Concrete
@@ -18,15 +21,19 @@ namespace Pertuk.Business.Services.Concrete
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PertukUserManager _pertukUserManager;
-        private readonly IUploadImageService _uploadImageService;
+        private readonly IMapper _mapper;
+        private readonly CurrentUser _currentUser;
+
         public UserManagerService(
             PertukUserManager pertukUserManager,
-            IUploadImageService uploadImageService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            CurrentUser currentUser)
         {
             _unitOfWork = unitOfWork;
             _pertukUserManager = pertukUserManager;
-            _uploadImageService = uploadImageService;
+            _mapper = mapper;
+            _currentUser = currentUser;
         }
 
         public async Task<UserManagerResponseModel> SetUserStudentAsync(StudentUserRequestModel studentUserRequest)
@@ -88,18 +95,15 @@ namespace Pertuk.Business.Services.Concrete
             throw new PertukApiException();
         }
 
-        public async Task<UsersDetailsResponseModel> GetUserDetail(string userId)
+        public ApplicationUserDto GetUserDetail()
         {
-            if (userId == null) throw new PertukApiException("Please provide required information!");
+            var userDetails = _pertukUserManager.GetUserDetailsAsync(_currentUser.Id);
 
-            var userDetail = await _pertukUserManager.FindByIdAsync(userId);
-            if (userDetail == null) throw new PertukApiException("User not found!");
+            if (userDetails == null) throw new PertukApiException("User not found!");
 
-            return new UsersDetailsResponseModel
-            {
+            var mappedUserDetails = _mapper.Map<ApplicationUserDto>(userDetails);
 
-            };
-
+            return mappedUserDetails;
         }
 
         #region Private Functions

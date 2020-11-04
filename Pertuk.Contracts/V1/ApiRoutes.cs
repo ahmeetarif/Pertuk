@@ -29,9 +29,15 @@
 
         public static class UserManager
         {
-            public const string Base = Version + "/usermanager";
-            public const string SetStudentUser = Base + "/setStudentUser";
-            public const string SetTeacherUser = Base + "/setTeacherUser";
+            public const string Base = Version + "/users";
+
+            public const string SetStudentUser = Base + "/setStudent";
+
+            public const string SetTeacherUser = Base + "/setTeacher";
+
+            public const string GetUsers = Base + "/get";
+
+            public const string GetCurrentDetails = Base + "/getCurrentUserDetails";
         }
     }
 }

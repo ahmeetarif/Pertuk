@@ -1,6 +1,5 @@
 ﻿using System;
 using Pertuk.Dto.Models;
-using Pertuk.Entities.Models;
 
 namespace Pertuk.Contracts.V1.Responses.UserManager
 {

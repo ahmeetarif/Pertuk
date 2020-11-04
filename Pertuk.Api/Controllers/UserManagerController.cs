@@ -24,5 +24,12 @@ namespace Pertuk.Api.Controllers
             var response = await _userManagerService.SetUserStudentAsync(studentUserRequestModel);
             return Ok(response);
         }
+
+        [HttpPost(ApiRoutes.UserManager.GetCurrentDetails)]
+        public IActionResult GetCurrentDetails()
+        {
+            var response = _userManagerService.GetUserDetail();
+            return Ok(response);
+        }
     }
 }

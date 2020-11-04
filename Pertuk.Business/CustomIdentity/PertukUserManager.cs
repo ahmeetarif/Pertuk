@@ -6,9 +6,11 @@ using Pertuk.Business.CustomIdentity.Providers;
 using Pertuk.Business.CustomIdentity.Statics;
 using Pertuk.Common.Exceptions;
 using Pertuk.DataAccess.Repositories.Abstract;
+using Pertuk.Dto.Models;
 using Pertuk.Entities.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
@@ -37,10 +39,23 @@ namespace Pertuk.Business.CustomIdentity
             _teacherUsersRepository = teacherUsersRepository;
         }
 
+        #region User Manager
+
+        public virtual ApplicationUser GetUserDetailsAsync(string userId)
+        {
+            ThrowIfDisposed();
+            var userDetails = Users.Include(x => x.StudentUsers)
+                .Include(x => x.TeacherUsers)
+                .FirstOrDefault(x => x.Id == userId);
+            return userDetails;
+        }
+
+        #endregion
+
         #region Email Confirmation
 
         /// <summary>
-        /// Validates that an email confirmation digit code is valid and matches the specified user.
+        /// Validates an email confirmation digit code is valid and matches the specified user.
         /// </summary>
         /// <param name="user">The user to validate the token against.</param>
         /// <param name="digitCode">The email confirmation token to validate.</param>
