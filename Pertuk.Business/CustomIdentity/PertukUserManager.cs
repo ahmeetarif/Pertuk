@@ -176,6 +176,7 @@ namespace Pertuk.Business.CustomIdentity
 
         public virtual void CheckUserBanAndDeletion(string userId)
         {
+            ThrowIfDisposed();
             try
             {
                 var isBanned = _bannedUsersRepository.GetById(userId);
@@ -192,6 +193,7 @@ namespace Pertuk.Business.CustomIdentity
 
         public virtual async Task<EntityState> CreateStudent(StudentUsers studentUsers)
         {
+            ThrowIfDisposed();
             await UpdateNormalizedEmailAsync(studentUsers.User);
             await UpdateNormalizedUserNameAsync(studentUsers.User);
 
@@ -200,6 +202,7 @@ namespace Pertuk.Business.CustomIdentity
 
         public virtual async Task<EntityState> CreateTeacher(TeacherUsers teacherUsers)
         {
+            ThrowIfDisposed();
             await UpdateNormalizedEmailAsync(teacherUsers.User);
             await UpdateNormalizedUserNameAsync(teacherUsers.User);
 
@@ -238,6 +241,7 @@ namespace Pertuk.Business.CustomIdentity
 
         public virtual async Task<ApplicationUser> GetUserDetailByNameAsync(string username)
         {
+            ThrowIfDisposed();
             username = KeyNormalizer.NormalizeName(username);
 
             var userDetail = await Store.FindByNameAsync(username, CancellationToken);

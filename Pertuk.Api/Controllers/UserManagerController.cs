@@ -25,7 +25,7 @@ namespace Pertuk.Api.Controllers
             return Ok(response);
         }
 
-        [HttpPost(ApiRoutes.UserManager.GetCurrentDetails)]
+        [HttpGet(ApiRoutes.UserManager.GetCurrentDetails)]
         public IActionResult GetCurrentDetails()
         {
             var response = _userManagerService.GetUserDetail();
