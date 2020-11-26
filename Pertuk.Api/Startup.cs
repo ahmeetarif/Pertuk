@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Pertuk.Api.Extensions;
 using Pertuk.Api.Options;
+using Pertuk.Business.Extensions;
 using Pertuk.Business.Extensions.InstallerExt;
 using Pertuk.Common.MiddleWare.Handlers;
 
@@ -40,6 +41,8 @@ namespace Pertuk.Api
             app.ConfigureHealthCheck();
 
             app.ConfigureSwagger(Configuration);
+
+            //app.ConfigureTokenExpiredResponse();
 
             app.UseAuthentication();
             app.UseAuthorization();

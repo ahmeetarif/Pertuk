@@ -4,13 +4,16 @@ using Pertuk.Entities.Models;
 
 namespace Pertuk.Business.Mappings
 {
-    public class DomainToDto : Profile
+    public class DomainDtoMapping : Profile
     {
-        public DomainToDto()
+        public DomainDtoMapping()
         {
             CreateMap<ApplicationUser, ApplicationUserDto>();
+            CreateMap<ApplicationUserDto, ApplicationUser>();
             CreateMap<StudentUsers, StudentUsersDto>();
+            CreateMap<StudentUsersDto, StudentUsers>();
             CreateMap<TeacherUsers, TeacherUsersDto>();
+            CreateMap<TeacherUsersDto, TeacherUsers>();
         }
     }
 }

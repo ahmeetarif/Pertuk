@@ -113,7 +113,8 @@ namespace Pertuk.Business.Services.Concrete
                     return new AuthenticationResponseModel
                     {
                         Message = "User Registered With Facebook!",
-                        Token = token.AccessToken
+                        Token = token.AccessToken,
+                        RefreshToken = token.RefreshToken
                     };
                 }
 
@@ -126,7 +127,8 @@ namespace Pertuk.Business.Services.Concrete
             return new AuthenticationResponseModel
             {
                 Message = "User Logged In With Facebook!",
-                Token = loginToken.AccessToken
+                Token = loginToken.AccessToken,
+                RefreshToken = loginToken.RefreshToken
             };
         }
 

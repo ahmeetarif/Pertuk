@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -6,6 +7,7 @@ using Pertuk.Business.CustomIdentity.Providers;
 using Pertuk.Business.CustomIdentity.Statics;
 using Pertuk.Common.Exceptions;
 using Pertuk.DataAccess.Repositories.Abstract;
+using Pertuk.DataAccess.UnitOfWork;
 using Pertuk.Dto.Models;
 using Pertuk.Entities.Models;
 using System;
@@ -20,16 +22,20 @@ namespace Pertuk.Business.CustomIdentity
     {
         private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
         private readonly DigitTokenProvider _digitTokenProvider;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IBannedUsersRepository _bannedUsersRepository;
         private readonly IDeletedUsersRepository _deletedUsersRepository;
         private readonly IStudentUsersRepository _studentUsersRepository;
         private readonly ITeacherUsersRepository _teacherUsersRepository;
+        private readonly IMapper _mapper;
         public PertukUserManager(IUserStore<ApplicationUser> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<ApplicationUser> passwordHasher, IEnumerable<IUserValidator<ApplicationUser>> userValidators, IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<ApplicationUser>> logger,
             DigitTokenProvider digitTokenProvider,
             IBannedUsersRepository bannedUsersRepository,
             IDeletedUsersRepository deletedUsersRepository,
             IStudentUsersRepository studentUsersRepository,
-            ITeacherUsersRepository teacherUsersRepository)
+            ITeacherUsersRepository teacherUsersRepository,
+            IUnitOfWork unitOfWork,
+            IMapper mapper)
             : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
         {
             _digitTokenProvider = digitTokenProvider;
@@ -37,17 +43,69 @@ namespace Pertuk.Business.CustomIdentity
             _deletedUsersRepository = deletedUsersRepository;
             _studentUsersRepository = studentUsersRepository;
             _teacherUsersRepository = teacherUsersRepository;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         #region User Manager
 
-        public virtual ApplicationUser GetUserDetailsAsync(string userId)
+        public virtual ApplicationUser GetUserDetails(string userId)
         {
             ThrowIfDisposed();
             var userDetails = Users.Include(x => x.StudentUsers)
                 .Include(x => x.TeacherUsers)
                 .FirstOrDefault(x => x.Id == userId);
             return userDetails;
+        }
+
+        public virtual async Task<bool> SetUserStudentAsync(ApplicationUser user, StudentUsersDto studentUsers)
+        {
+            ThrowIfDisposed();
+            if (user == null || studentUsers == null) throw new PertukApiException("Please provide required information!");
+
+            var isStudentUserExist = _unitOfWork.StudentUsers.GetById(user.Id);
+            if (isStudentUserExist != null) throw new PertukApiException("You're already a student!");
+
+            var studentIdentity = _mapper.Map<StudentUsers>(studentUsers, options =>
+            {
+                options.AfterMap((src, dest) => dest.User = user);
+            });
+
+            try
+            {
+                await _unitOfWork.StudentUsers.Add(studentIdentity);
+                _unitOfWork.Commit();
+                return true;
+            }
+            catch (Exception)
+            {
+                throw new PertukApiException();
+            }
+        }
+
+        public virtual async Task<bool> SetUserTeacherAsync(ApplicationUser user, TeacherUsersDto teacherUsers)
+        {
+            ThrowIfDisposed();
+            if (user == null || teacherUsers == null) throw new PertukApiException("Please provide required information!");
+
+            var isTeacherUserExist = _unitOfWork.TeacherUsers.GetById(user.Id);
+            if (isTeacherUserExist != null) throw new PertukApiException("You're already a Teacher!");
+
+            var teacherIdentity = _mapper.Map<TeacherUsers>(teacherUsers, options =>
+            {
+                options.AfterMap((src, dest) => dest.User = user);
+            });
+
+            try
+            {
+                await _unitOfWork.TeacherUsers.Add(teacherIdentity);
+                _unitOfWork.Commit();
+                return true;
+            }
+            catch (Exception)
+            {
+                throw new PertukApiException();
+            }
         }
 
         #endregion

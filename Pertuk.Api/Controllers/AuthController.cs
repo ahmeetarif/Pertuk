@@ -98,7 +98,7 @@ namespace Pertuk.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost(ApiRoutes.Auth.FacebookAuthentication)]
-        public async Task<IActionResult> FacebookAuthentication(FacebookAuthRequestModel facebookAuthRequestModel)
+        public async Task<IActionResult> FacebookAuthentication([FromBody] FacebookAuthRequestModel facebookAuthRequestModel)
         {
             var response = await _authService.FacebookAuthenticationAsync(facebookAuthRequestModel);
 
