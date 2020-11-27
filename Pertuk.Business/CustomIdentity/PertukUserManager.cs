@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Pertuk.Business.CustomIdentity.Providers;
 using Pertuk.Business.CustomIdentity.Statics;
 using Pertuk.Common.Exceptions;
-using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.DataAccess.UnitOfWork;
 using Pertuk.Dto.Models;
 using Pertuk.Entities.Models;
@@ -23,26 +22,14 @@ namespace Pertuk.Business.CustomIdentity
         private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();
         private readonly DigitTokenProvider _digitTokenProvider;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IBannedUsersRepository _bannedUsersRepository;
-        private readonly IDeletedUsersRepository _deletedUsersRepository;
-        private readonly IStudentUsersRepository _studentUsersRepository;
-        private readonly ITeacherUsersRepository _teacherUsersRepository;
         private readonly IMapper _mapper;
         public PertukUserManager(IUserStore<ApplicationUser> store, IOptions<IdentityOptions> optionsAccessor, IPasswordHasher<ApplicationUser> passwordHasher, IEnumerable<IUserValidator<ApplicationUser>> userValidators, IEnumerable<IPasswordValidator<ApplicationUser>> passwordValidators, ILookupNormalizer keyNormalizer, IdentityErrorDescriber errors, IServiceProvider services, ILogger<UserManager<ApplicationUser>> logger,
             DigitTokenProvider digitTokenProvider,
-            IBannedUsersRepository bannedUsersRepository,
-            IDeletedUsersRepository deletedUsersRepository,
-            IStudentUsersRepository studentUsersRepository,
-            ITeacherUsersRepository teacherUsersRepository,
             IUnitOfWork unitOfWork,
             IMapper mapper)
             : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
         {
             _digitTokenProvider = digitTokenProvider;
-            _bannedUsersRepository = bannedUsersRepository;
-            _deletedUsersRepository = deletedUsersRepository;
-            _studentUsersRepository = studentUsersRepository;
-            _teacherUsersRepository = teacherUsersRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -146,9 +133,7 @@ namespace Pertuk.Business.CustomIdentity
             return await _digitTokenProvider.GenerateAsync(DigitTokenProvider.EmailDigit, this, user);
         }
 
-
         #endregion
-
 
         #region Reset Password
 
@@ -212,59 +197,22 @@ namespace Pertuk.Business.CustomIdentity
 
         #endregion
 
-        public virtual async Task<IdentityResult> UpdatePasswordHash(ApplicationUser user, string password)
-        {
-            ThrowIfDisposed();
-            var passwordStore = GetPasswordStore();
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
-            var hash = await passwordStore.GetPasswordHashAsync(user, CancellationToken);
-            if (hash != null)
-            {
-                return IdentityResult.Failed(ErrorDescriber.UserAlreadyHasPassword());
-            }
-            var result = await UpdatePasswordHash(passwordStore, user, password);
-            return result;
-        }
-
-
 
         public virtual void CheckUserBanAndDeletion(string userId)
         {
             ThrowIfDisposed();
             try
             {
-                var isBanned = _bannedUsersRepository.GetById(userId);
+                var isBanned = _unitOfWork.BannedUsers.GetById(userId);
                 if (isBanned != null && isBanned.IsActive == true) throw new PertukApiException($"This user was banned on : {isBanned.BannedAt.ToShortDateString()}");
 
-                var isDeleted = _deletedUsersRepository.GetById(userId);
+                var isDeleted = _unitOfWork.DeletedUsers.GetById(userId);
                 if (isDeleted != null && isDeleted.IsActive == true) throw new PertukApiException($"This user was deleted on : {isDeleted.DeletedAt.ToShortDateString()}");
             }
             catch (Exception)
             {
                 throw new PertukApiException();
             }
-        }
-
-        public virtual async Task<EntityState> CreateStudent(StudentUsers studentUsers)
-        {
-            ThrowIfDisposed();
-            await UpdateNormalizedEmailAsync(studentUsers.User);
-            await UpdateNormalizedUserNameAsync(studentUsers.User);
-
-            return _studentUsersRepository.AddUsersAndStudent(studentUsers);
-        }
-
-        public virtual async Task<EntityState> CreateTeacher(TeacherUsers teacherUsers)
-        {
-            ThrowIfDisposed();
-            await UpdateNormalizedEmailAsync(teacherUsers.User);
-            await UpdateNormalizedUserNameAsync(teacherUsers.User);
-
-            return _teacherUsersRepository.AddUsersAndTeacher(teacherUsers);
         }
 
         public virtual async Task<ApplicationUser> GetUserDetailByEmailAsync(string email)
@@ -278,7 +226,7 @@ namespace Pertuk.Business.CustomIdentity
 
             if (userDetail == null) throw new PertukApiException("User not found!");
 
-            var isUserStudent = _studentUsersRepository.GetById(userDetail.Id);
+            var isUserStudent = _unitOfWork.StudentUsers.GetById(userDetail.Id);
             if (isUserStudent != null)
             {
                 // Student
@@ -286,7 +234,7 @@ namespace Pertuk.Business.CustomIdentity
                 return userDetail;
             }
 
-            var isUserTeacher = _teacherUsersRepository.GetById(userDetail.Id);
+            var isUserTeacher = _unitOfWork.TeacherUsers.GetById(userDetail.Id);
             if (isUserTeacher != null)
             {
                 // Teacher
@@ -306,7 +254,7 @@ namespace Pertuk.Business.CustomIdentity
 
             if (userDetail == null) throw new PertukApiException("User not found!");
 
-            var isUserStudent = _studentUsersRepository.GetById(userDetail.Id);
+            var isUserStudent = _unitOfWork.StudentUsers.GetById(userDetail.Id);
             if (isUserStudent != null)
             {
                 // Student
@@ -314,7 +262,7 @@ namespace Pertuk.Business.CustomIdentity
                 return userDetail;
             }
 
-            var isUserTeacher = _teacherUsersRepository.GetById(userDetail.Id);
+            var isUserTeacher = _unitOfWork.TeacherUsers.GetById(userDetail.Id);
             if (isUserTeacher != null)
             {
                 // Teacher
@@ -337,32 +285,6 @@ namespace Pertuk.Business.CustomIdentity
             return cast;
         }
 
-        private IUserPasswordStore<ApplicationUser> GetPasswordStore()
-        {
-            var cast = Store as IUserPasswordStore<ApplicationUser>;
-            if (cast == null)
-            {
-                throw new NotSupportedException();
-            }
-            return cast;
-        }
-
-        private async Task<IdentityResult> UpdatePasswordHash(IUserPasswordStore<ApplicationUser> passwordStore,
-            ApplicationUser user, string newPassword, bool validatePassword = true)
-        {
-            if (validatePassword)
-            {
-                var validate = await ValidatePasswordAsync(user, newPassword);
-                if (!validate.Succeeded)
-                {
-                    return validate;
-                }
-            }
-            var hash = newPassword != null ? PasswordHasher.HashPassword(user, newPassword) : null;
-            await passwordStore.SetPasswordHashAsync(user, hash, CancellationToken);
-            await UpdateSecurityStampInternal(user);
-            return IdentityResult.Success;
-        }
         private async Task UpdateSecurityStampInternal(ApplicationUser user)
         {
             if (SupportsUserSecurityStamp)

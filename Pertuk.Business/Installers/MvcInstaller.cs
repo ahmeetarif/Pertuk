@@ -17,6 +17,9 @@ using Pertuk.Common.MiddleWare;
 using Pertuk.DataAccess.Repositories.Abstract;
 using Pertuk.DataAccess.Repositories.Concrete;
 using Pertuk.DataAccess.UnitOfWork;
+using Pertuk.EmailService.Abstract;
+using Pertuk.EmailService.Concrete;
+using Pertuk.EmailService.Options;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -52,7 +55,7 @@ namespace Pertuk.Business.Installers
 
             JwtConfiguration(services, configuration);
 
-            ConfigureDependencies(services);
+            ConfigureDependencies(services, configuration);
 
             OptionsConfiguration(services, configuration);
         }
@@ -131,7 +134,7 @@ namespace Pertuk.Business.Installers
             });
         }
 
-        private void ConfigureDependencies(IServiceCollection services)
+        private void ConfigureDependencies(IServiceCollection services, IConfiguration configuration)
         {
             #region Scopes
 
@@ -155,6 +158,13 @@ namespace Pertuk.Business.Installers
             #region Transients
 
             services.AddTransient<IEmailSender, EmailSender>();
+
+            #endregion
+
+            #region Singletons
+
+            var sendGridEmailOptions = configuration.GetSection(nameof(SendGridEmailOptions)).Get<SendGridEmailOptions>();
+            services.AddSingleton(sendGridEmailOptions);
 
             #endregion
 

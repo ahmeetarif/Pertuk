@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Pertuk.Core.Entities;
 using System;
 using System.Collections.Generic;
 
 namespace Pertuk.Entities.Models
 {
-    public partial class ApplicationUser : IdentityUser
+    public partial class ApplicationUser : IdentityUser, IEntity
     {
         public string Fullname { get; set; }
         public string ProfileImagePath { get; set; }

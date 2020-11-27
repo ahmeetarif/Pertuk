@@ -32,6 +32,7 @@
 		<ProjectReference Include="..\Pertuk.Contracts\Pertuk.Contracts.csproj" />
 		<ProjectReference Include="..\Pertuk.DataAccess\Pertuk.DataAccess.csproj" />
 		<ProjectReference Include="..\Pertuk.Dto\Pertuk.Dto.csproj" />
+		<ProjectReference Include="..\Pertuk.EmailService\Pertuk.EmailService.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

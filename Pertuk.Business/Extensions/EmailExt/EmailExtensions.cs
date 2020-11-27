@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Pertuk.Business.Extensions.StringExt;
 using Pertuk.Business.Options;
-using Pertuk.Business.Services.Abstract;
 using Pertuk.Common.Infrastructure;
+using Pertuk.EmailService.Abstract;
 using System;
 using System.Collections.Generic;
 using System.IO;

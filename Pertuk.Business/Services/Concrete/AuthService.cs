@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Pertuk.Business.CustomIdentity;
 using Pertuk.Business.CustomIdentity.JwtManager.Abstract;
 using Pertuk.Business.Extensions.EmailExt;
@@ -9,7 +7,10 @@ using Pertuk.Business.Services.Abstract;
 using Pertuk.Common.Exceptions;
 using Pertuk.Contracts.V1.Requests.Auth;
 using Pertuk.Contracts.V1.Responses.Auth;
+using Pertuk.EmailService.Abstract;
 using Pertuk.Entities.Models;
+using System;
+using System.Threading.Tasks;
 
 namespace Pertuk.Business.Services.Concrete
 {
@@ -37,17 +38,15 @@ namespace Pertuk.Business.Services.Concrete
 
         public async Task<AuthenticationResponseModel> RegisterAsync(RegisterRequestModel registerRequestModel)
         {
-            if (registerRequestModel == null) throw new PertukApiException("Details should not be empty!");
+            if (registerRequestModel == null) throw new PertukApiException("Please provide required information!");
 
-            await CheckAndVerifyUserDetailForRegistering(registerRequestModel.Email);
+            await CheckAndVerifyUserDetailForRegistering(registerRequestModel.Email, registerRequestModel.Username);
 
             var profileImagePath = await UploadProfilePicture(registerRequestModel.ProfileImage, registerRequestModel.Email);
 
-            var emailStartLocation = registerRequestModel.Email.IndexOf('@', StringComparison.Ordinal);
-
             var applicationIdentity = new ApplicationUser
             {
-                UserName = registerRequestModel.Email.Substring(0, emailStartLocation),
+                UserName = registerRequestModel.Username,
                 Email = registerRequestModel.Email,
                 CreatedAt = DateTime.Now,
                 ProfileImagePath = profileImagePath,
@@ -65,7 +64,8 @@ namespace Pertuk.Business.Services.Concrete
                 return new AuthenticationResponseModel
                 {
                     Message = "User created successfully!",
-                    Token = token.AccessToken
+                    Token = token.AccessToken,
+                    RefreshToken = token.RefreshToken
                 };
             }
 

@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pertuk.Business.Services.Abstract;
-using Pertuk.Contracts.V1.Requests.Auth;
 using Pertuk.Contracts.V1;
+using Pertuk.Contracts.V1.Requests.Auth;
 using System.Threading.Tasks;
 
 namespace Pertuk.Api.Controllers
@@ -46,7 +45,6 @@ namespace Pertuk.Api.Controllers
         #region Email Confirmation
 
         [HttpPost(ApiRoutes.Auth.ConfirmEmail)]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "SendEmailConfirmationPolicy")]
         public async Task<IActionResult> ConfirmEmail(ConfirmEmailRequestModel confirmEmailRequestModel)
         {
             var response = await _authService.ConfirmEmailAsync(confirmEmailRequestModel);
@@ -55,7 +53,6 @@ namespace Pertuk.Api.Controllers
         }
 
         [HttpPost(ApiRoutes.Auth.SendEmailConfirmation)]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "SendEmailConfirmationPolicy")]
         public async Task<IActionResult> SendEmailConfirmation([FromBody] string userId)
         {
             var response = await _authService.SendEmailConfirmationCodeAsync(userId);
